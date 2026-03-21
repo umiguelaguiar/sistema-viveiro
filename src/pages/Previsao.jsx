@@ -116,12 +116,12 @@ export default function Previsao() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Previsão Diária</p>
-              <p className="text-2xl font-bold text-green-600">{Math.round(mediaDiaria).toLocaleString('pt-BR')}</p>
+              <p className="text-2xl font-bold text-green-600">{previsaoDiaria.toLocaleString('pt-BR')}</p>
               <p className="text-xs text-muted-foreground">mudas / dia</p>
             </div>
           </div>
-          {meta && <div className={`mt-2 text-xs font-medium ${Math.round(mediaDiaria) >= (Number(meta) / 30) ? 'text-green-600' : 'text-amber-600'}`}>
-            Meta diária: {Math.round(Number(meta) / 30).toLocaleString('pt-BR')} — {Math.round(mediaDiaria) >= (Number(meta) / 30) ? '✅ Atingida' : '⚠️ Abaixo'}
+          {meta && <div className={`mt-2 text-xs font-medium ${previsaoDiaria >= (Number(meta) / 30) ? 'text-green-600' : 'text-amber-600'}`}>
+            Meta diária: {Math.round(Number(meta) / 30).toLocaleString('pt-BR')} — {previsaoDiaria >= (Number(meta) / 30) ? '✅ Atingida' : '⚠️ Abaixo'}
           </div>}
         </Card>
 
