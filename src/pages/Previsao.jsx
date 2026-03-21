@@ -161,6 +161,10 @@ export default function Previsao() {
               <SelectItem value="30">Próximos 30 dias</SelectItem>
               <SelectItem value="60">Próximos 60 dias</SelectItem>
               <SelectItem value="90">Próximos 90 dias</SelectItem>
+              <SelectItem value="90">Próximos 3 meses</SelectItem>
+              <SelectItem value="180">Próximos 6 meses</SelectItem>
+              <SelectItem value="240">Próximos 8 meses</SelectItem>
+              <SelectItem value="360">Próximos 12 meses</SelectItem>
             </SelectContent>
           </Select>
         </div>
