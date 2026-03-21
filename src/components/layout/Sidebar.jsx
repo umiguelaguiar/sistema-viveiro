@@ -13,7 +13,9 @@ import {
   PackageCheck,
   ChevronLeft,
   ChevronRight,
-  Leaf
+  Leaf,
+  FileBarChart2,
+  Percent
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
