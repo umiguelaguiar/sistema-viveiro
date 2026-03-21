@@ -97,14 +97,13 @@ export default function Porcentagem() {
       .filter(([, v]) => v.producao > 0)
       .map(([loteId, v]) => ({
         lote: loteMap[loteId],
-        clone: cloneMap[v.clone_id],
         producao: v.producao,
         perdas: v.perdas,
         enraizadas: v.producao - v.perdas,
         pct: calcEnraizamento(v.producao, v.perdas),
       }))
       .sort((a, b) => parseFloat(b.pct) - parseFloat(a.pct));
-  }, [producoesFiltradas, perdasFiltradas, cloneMap, loteMap]);
+  }, [producoesFiltradas, perdasFiltradas, loteMap]);
 
   return (
     <div>
@@ -174,7 +173,6 @@ export default function Porcentagem() {
             <thead>
               <tr className="bg-muted/50">
                 <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lote</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Clone</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Produção</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Perdas</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Enraizadas</th>
@@ -187,13 +185,15 @@ export default function Porcentagem() {
               ) : dadosPorLote.map((row, i) => (
                 <tr key={i} className="border-t hover:bg-muted/30 transition-colors">
                   <td className="px-4 py-3 font-medium">{row.lote?.codigo || '—'}</td>
-                  <td className="px-4 py-3">{row.clone?.codigo_clone || '—'}</td>
                   <td className="px-4 py-3 text-right">{row.producao.toLocaleString('pt-BR')}</td>
                   <td className="px-4 py-3 text-right text-destructive">{row.perdas.toLocaleString('pt-BR')}</td>
                   <td className="px-4 py-3 text-right">{row.enraizadas.toLocaleString('pt-BR')}</td>
                   <td className="px-4 py-3 text-right"><EnraizamentoBadge pct={row.pct} /></td>
                 </tr>
               ))}
+              {dadosPorLote.length === 0 && (
+                <tr><td colSpan={5} className="text-center py-12 text-muted-foreground">Sem dados para o período selecionado</td></tr>
+              )}
             </tbody>
           </table>
         </Card>

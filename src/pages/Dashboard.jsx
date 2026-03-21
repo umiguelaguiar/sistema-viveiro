@@ -32,10 +32,7 @@ export default function Dashboard() {
   const allItems = useMemo(() => [...producoes, ...perdas, ...movimentacoes], [producoes, perdas, movimentacoes]);
   const monthOptions = useMemo(() => getMonthOptions(allItems), [allItems]);
 
-  // Lotes filtrados pelo clone selecionado
-  const lotesFiltradosPorClone = useMemo(() =>
-    cloneFiltro === 'todos' ? lotes : lotes.filter(l => l.clone_id === cloneFiltro),
-  [lotes, cloneFiltro]);
+
 
   const applyFilters = (items) => {
     let filtered = items;
@@ -121,7 +118,7 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
 
-          <Select value={cloneFiltro} onValueChange={v => { setCloneFiltro(v); setLoteFiltro('todos'); }}>
+          <Select value={cloneFiltro} onValueChange={v => setCloneFiltro(v)}>
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Filtrar por clone" />
             </SelectTrigger>
@@ -137,7 +134,7 @@ export default function Dashboard() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos os lotes</SelectItem>
-              {lotesFiltradosPorClone.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo}</SelectItem>)}
+              {lotes.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
