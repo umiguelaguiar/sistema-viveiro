@@ -28,6 +28,7 @@ export function canAccess(role, path) {
 
 export function getRoleLabel(role) {
   const labels = {
+    [ROLES.VISITANTE]: 'Visitante',
     [ROLES.USUARIO]: 'Usuário',
     [ROLES.SUPERVISOR]: 'Supervisor',
     [ROLES.ADMIN]: 'Administrador',
