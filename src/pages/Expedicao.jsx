@@ -49,6 +49,8 @@ export default function Expedicao() {
       setor_destino_id: ''
     });
     queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
+    queryClient.invalidateQueries({ queryKey: ['producoes'] });
+    queryClient.invalidateQueries({ queryKey: ['perdas'] });
     setForm({ lote_id: '', clone_id: '', quantidade: '', data: new Date().toISOString().split('T')[0] });
     setOpen(false);
     toast.success(`Expedição registrada a partir de ${setorExpedicao.nome}`);
@@ -57,6 +59,8 @@ export default function Expedicao() {
   const handleDelete = async (id) => {
     await base44.entities.Movimentacao.delete(id);
     queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
+    queryClient.invalidateQueries({ queryKey: ['producoes'] });
+    queryClient.invalidateQueries({ queryKey: ['perdas'] });
   };
 
   const cloneMap = {};
