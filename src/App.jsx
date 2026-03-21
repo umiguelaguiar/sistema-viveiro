@@ -30,6 +30,7 @@ import Previsao from '@/pages/Previsao';
 import Backup from '@/pages/Backup';
 import SolicitarAcesso from '@/pages/SolicitarAcesso';
 import AguardandoAprovacao from '@/pages/AguardandoAprovacao';
+import AcessoNegado from '@/pages/AcessoNegado';
 
 const AguardandoPendente = ({ user }) => {
   const { data: solicitacoes = [], isLoading } = useQuery({
