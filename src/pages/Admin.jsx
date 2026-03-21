@@ -69,6 +69,127 @@ function UserRow({ u, currentUserId }) {
   );
 }
 
+function SolicitacoesSection() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const { data: solicitacoes = [], isLoading } = useQuery({
+    queryKey: ['solicitacoes-acesso'],
+    queryFn: () => base44.entities.SolicitacaoAcesso.list('-created_date'),
+  });
+
+  const aprovarMutation = useMutation({
+    mutationFn: async (s) => {
+      // Convida o usuário com cargo "usuario"
+      await base44.users.inviteUser(s.email, ROLES.USUARIO);
+      // Marca como aprovado
+      await base44.entities.SolicitacaoAcesso.update(s.id, { status: 'aprovado' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['solicitacoes-acesso'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({ title: 'Usuário aprovado e convidado com sucesso!' });
+    },
+    onError: (e) => toast({ title: 'Erro ao aprovar: ' + (e?.message || 'tente novamente'), variant: 'destructive' }),
+  });
+
+  const rejeitarMutation = useMutation({
+    mutationFn: (s) => base44.entities.SolicitacaoAcesso.update(s.id, { status: 'rejeitado' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['solicitacoes-acesso'] });
+      toast({ title: 'Solicitação rejeitada.' });
+    },
+  });
+
+  const pendentes = solicitacoes.filter(s => s.status === 'pendente');
+  const processadas = solicitacoes.filter(s => s.status !== 'pendente');
+
+  const statusBadge = (status) => {
+    if (status === 'aprovado') return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs">Aprovado</Badge>;
+    if (status === 'rejeitado') return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-xs">Rejeitado</Badge>;
+    return <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs">Pendente</Badge>;
+  };
+
+  return (
+    <Card className="mb-6">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Clock className="w-4 h-4" />
+          Solicitações de Acesso
+          {pendentes.length > 0 && (
+            <span className="ml-auto bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs font-medium px-2 py-0.5 rounded-full">
+              {pendentes.length} pendente{pendentes.length > 1 ? 's' : ''}
+            </span>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground py-4 text-center">Carregando...</p>
+        ) : solicitacoes.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-4 text-center">Nenhuma solicitação de acesso ainda.</p>
+        ) : (
+          <div className="space-y-1">
+            {pendentes.length > 0 && (
+              <div className="mb-3">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Aguardando aprovação</p>
+                {pendentes.map(s => (
+                  <div key={s.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
+                    <div className="w-9 h-9 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center shrink-0">
+                      <Clock className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{s.nome || '—'}</p>
+                      <p className="text-xs text-muted-foreground truncate">{s.email}</p>
+                      {s.mensagem && <p className="text-xs text-muted-foreground italic mt-0.5 truncate">"{s.mensagem}"</p>}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button
+                        size="sm"
+                        className="min-h-[40px] bg-green-600 hover:bg-green-700 text-white gap-1"
+                        disabled={aprovarMutation.isPending || rejeitarMutation.isPending}
+                        onClick={() => aprovarMutation.mutate(s)}
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Aprovar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="min-h-[40px] text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-900/20 gap-1"
+                        disabled={aprovarMutation.isPending || rejeitarMutation.isPending}
+                        onClick={() => rejeitarMutation.mutate(s)}
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        Rejeitar
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {processadas.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Histórico</p>
+                {processadas.map(s => (
+                  <div key={s.id} className="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{s.nome || '—'}</p>
+                      <p className="text-xs text-muted-foreground truncate">{s.email}</p>
+                    </div>
+                    {statusBadge(s.status)}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Admin() {
   const { user } = useAuth();
 
