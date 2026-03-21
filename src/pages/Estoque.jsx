@@ -83,9 +83,31 @@ export default function Estoque() {
 
   const totalFiltrado = filtradas.reduce((s, l) => s + l.qty, 0);
 
+  // Estoque total por setor
+  const estoquePorSetor = useMemo(() => {
+    const map = {};
+    setores.forEach(s => { map[s.id] = 0; });
+    linhas.forEach(l => { map[l.setorId] = (map[l.setorId] || 0) + l.qty; });
+    return map;
+  }, [linhas, setores]);
+
   return (
     <div>
       <PageHeader title="Estoque" description="Rastreabilidade completa das mudas por clone, setor e lote" />
+
+      {/* Estoque por Setor */}
+      <div className="mb-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Estoque por Setor</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {setores.map(s => (
+            <Card key={s.id} className="p-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{s.nome}</p>
+              <p className="text-3xl font-bold text-foreground mt-2">{(estoquePorSetor[s.id] || 0).toLocaleString('pt-BR')}</p>
+              <p className="text-xs text-muted-foreground mt-1">mudas em estoque</p>
+            </Card>
+          ))}
+        </div>
+      </div>
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-2 mb-4">
