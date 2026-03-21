@@ -31,6 +31,8 @@ export default function Producao() {
       quantidade: Number(form.quantidade)
     });
     queryClient.invalidateQueries({ queryKey: ['producoes'] });
+    queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
+    queryClient.invalidateQueries({ queryKey: ['perdas'] });
     setForm({ lote_id: '', clone_id: '', quantidade: '', setor_id: '', data: todayLocal() });
     setOpen(false);
   };
@@ -42,6 +44,8 @@ export default function Producao() {
       if (!e.message?.includes('not found')) throw e;
     }
     queryClient.invalidateQueries({ queryKey: ['producoes'] });
+    queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
+    queryClient.invalidateQueries({ queryKey: ['perdas'] });
   };
 
   const cloneMap = {};
