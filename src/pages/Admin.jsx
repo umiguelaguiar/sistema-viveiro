@@ -6,7 +6,8 @@ import { getRoleLabel, getRoleBadgeColor, ROLES } from '@/lib/roles';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Shield, Users, ChevronDown } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Shield, Users, ChevronDown, UserCheck, UserX, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import PageHeader from '@/components/shared/PageHeader';
 import { useToast } from '@/components/ui/use-toast';
 
