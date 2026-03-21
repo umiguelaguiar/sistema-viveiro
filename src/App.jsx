@@ -20,6 +20,9 @@ import Expedicao from '@/pages/Expedicao';
 import Perdas from '@/pages/Perdas';
 import Insumos from '@/pages/Insumos';
 import MovimentacaoInsumos from '@/pages/MovimentacaoInsumos';
+import Estoque from '@/pages/Estoque';
+import Previsao from '@/pages/Previsao';
+import Backup from '@/pages/Backup';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -56,6 +59,9 @@ const AuthenticatedApp = () => {
         <Route path="/perdas" element={<Perdas />} />
         <Route path="/insumos" element={<Insumos />} />
         <Route path="/movimentacao-insumos" element={<MovimentacaoInsumos />} />
+        <Route path="/estoque" element={<Estoque />} />
+        <Route path="/previsao" element={<Previsao />} />
+        <Route path="/backup" element={<Backup />} />
       </Route>
       <Route path="/Dashboard" element={<Navigate to="/" replace />} />
       <Route path="*" element={<PageNotFound />} />
