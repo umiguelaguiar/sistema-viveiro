@@ -101,8 +101,14 @@ export default function Previsao() {
           </SelectContent>
         </Select>
         <div className="flex items-center gap-2">
-          <Label className="text-sm whitespace-nowrap">Meta anual:</Label>
-          <Input type="number" placeholder="Ex: 600000" className="w-36" value={meta} onChange={e => setMeta(e.target.value)} />
+           <Label className="text-sm whitespace-nowrap">Meta anual:</Label>
+           <Input 
+             type="text" 
+             placeholder="Ex: 600.000" 
+             className="w-36" 
+             value={meta ? Number(meta).toLocaleString('pt-BR') : ''} 
+             onChange={e => setMeta(e.target.value.replace(/\D/g, ''))} 
+           />
         </div>
         <div className="flex items-center gap-2">
           <Label className="text-sm whitespace-nowrap">% Pegamento:</Label>
