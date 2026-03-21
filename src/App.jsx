@@ -70,6 +70,11 @@ const AuthenticatedApp = () => {
     }
   }
 
+  // Usuário com role de visitante = sem acesso
+  if (isAuthenticated && user && user.role === 'visitante') {
+    return <AcessoNegado />;
+  }
+
   // Usuário logado mas sem role = aguardando aprovação
   if (isAuthenticated && user && !user.role) {
     return (
