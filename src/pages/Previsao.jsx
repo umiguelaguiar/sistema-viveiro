@@ -148,16 +148,7 @@ export default function Previsao() {
             <Input type="number" min="1" max="100" placeholder="Ex: 85" className="w-24" value={pegamento} onChange={e => setPegamento(e.target.value)} />
             <span className="text-xs text-muted-foreground">% das mudas que chegam vivas</span>
           </div>
-          <Select value={periodoFrente} onValueChange={setPerioodoFrente}>
-            <SelectTrigger className="w-44"><SelectValue placeholder="Período futuro" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7">Próximos 7 dias</SelectItem>
-              <SelectItem value="15">Próximos 15 dias</SelectItem>
-              <SelectItem value="30">Próximos 30 dias</SelectItem>
-              <SelectItem value="60">Próximos 60 dias</SelectItem>
-              <SelectItem value="90">Próximos 90 dias</SelectItem>
-            </SelectContent>
-          </Select>
+
         </div>
       </div>
       {Number(pegamento) < 100 && (
