@@ -215,7 +215,7 @@ export default function Previsao() {
 
       {/* Gráfico histórico + projeção */}
       <Card className="p-5 mb-6">
-        <h3 className="text-sm font-semibold mb-4 text-foreground">Histórico + Projeção (12 meses)</h3>
+        <h3 className="text-sm font-semibold mb-4 text-foreground">Histórico + Projeção (12 meses) — baseado nos últimos {periodo} dias</h3>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={historicoMensal}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(140,12%,88%)" />
