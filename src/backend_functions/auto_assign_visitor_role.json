@@ -4,20 +4,5 @@
   "triggers": {
     "on_user_created": true
   },
-  "runtime": "deno",
-  "code": `
-export default async (payload, { base44 }) => {
-  try {
-    const user = payload.data;
-    
-    // Only assign visitor role if user doesn't have a role yet
-    if (!user.role) {
-      await base44.entities.User.update(user.id, { role: 'visitante' });
-      console.log('Visitor role assigned to user:', user.email);
-    }
-  } catch (error) {
-    console.error('Error assigning visitor role:', error);
-  }
-};
-  `
+  "runtime": "deno"
 }
