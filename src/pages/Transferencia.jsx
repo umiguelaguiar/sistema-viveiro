@@ -47,7 +47,7 @@ export default function Transferencia() {
       quantidade: qty
     });
     queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
-    setForm({ lote_id: '', clone_id: '', quantidade: '', setor_origem_id: '', setor_destino_id: '', data: new Date().toISOString().split('T')[0] });
+    setForm({ lote_id: '', clone_id: '', quantidade: '', setor_origem_id: '', setor_destino_id: '', data: todayLocal() });
     setOpen(false);
   };
 
