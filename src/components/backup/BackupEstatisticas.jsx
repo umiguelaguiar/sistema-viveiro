@@ -43,7 +43,7 @@ export default function BackupEstatisticas({ backups = [] }) {
       <Card>
         <CardContent className="pt-6">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Tempo Médio</p>
-          <p className="text-2xl font-bold text-primary">{stats.tempoMedio.toFixed(1)}s</p>
+          <p className="text-2xl font-bold text-primary">{stats?.tempoMedio?.toFixed(1) || '0'}s</p>
           <p className="text-xs text-muted-foreground mt-1">por execução</p>
         </CardContent>
       </Card>
@@ -51,7 +51,7 @@ export default function BackupEstatisticas({ backups = [] }) {
       <Card>
         <CardContent className="pt-6">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Tamanho Médio</p>
-          <p className="text-2xl font-bold text-primary">{stats.tamanhoMedio.toFixed(1)}MB</p>
+          <p className="text-2xl font-bold text-primary">{stats?.tamanhoMedio?.toFixed(1) || '0'}MB</p>
           <p className="text-xs text-muted-foreground mt-1">por backup</p>
         </CardContent>
       </Card>
@@ -59,7 +59,7 @@ export default function BackupEstatisticas({ backups = [] }) {
       <Card>
         <CardContent className="pt-6">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Total de Backups</p>
-          <p className="text-2xl font-bold text-primary">{stats.totalBackups}</p>
+          <p className="text-2xl font-bold text-primary">{stats?.totalBackups || 0}</p>
           <p className="text-xs text-muted-foreground mt-1">com sucesso</p>
         </CardContent>
       </Card>
