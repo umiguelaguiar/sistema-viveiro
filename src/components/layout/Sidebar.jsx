@@ -13,16 +13,21 @@ import {
   PackageCheck,
   ChevronLeft,
   ChevronRight,
-  Leaf,
   FileBarChart2,
-  Percent
+  Percent,
+  Boxes,
+  TrendingUp,
+  Download
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+  { label: 'Estoque', icon: Boxes, path: '/estoque' },
   { label: 'Porcentagem', icon: Percent, path: '/porcentagem' },
   { label: 'Relatório', icon: FileBarChart2, path: '/relatorio' },
+  { label: 'Previsão', icon: TrendingUp, path: '/previsao' },
+  { label: 'Backup', icon: Download, path: '/backup' },
   { label: 'Espécies', icon: TreePine, path: '/especies' },
   { label: 'Clones', icon: GitBranch, path: '/clones' },
   { label: 'Lotes', icon: Layers, path: '/lotes' },
