@@ -122,23 +122,30 @@ export default function Relatorio() {
     });
   }, []);
 
-  const exportarCSV = () => {
-    const mesFmt = format(mesDate, 'yyyy-MM');
-    const linhas = [
-      ['Tipo', 'Data', 'Clone', 'Lote', 'Setor', 'Quantidade', 'Motivo/Destino'],
-      ...prodMes.map(p => ['Producao', p.data || '', cloneMap[p.clone_id] || '', loteMap[p.lote_id] || '', setorMap[p.setor_id] || '', p.quantidade || 0, '']),
-      ...perdasMes.map(p => ['Perda', p.data || '', cloneMap[p.clone_id] || '', loteMap[p.lote_id] || '', setorMap[p.setor_id] || '', p.quantidade || 0, p.motivo || '']),
-      ...expedicoesMes.map(m => ['Expedicao', m.data || '', cloneMap[m.clone_id] || '', loteMap[m.lote_id] || '', setorMap[m.setor_origem_id] || '', m.quantidade || 0, setorMap[m.setor_destino_id] || '']),
-      ...transferenciasMes.map(m => ['Transferencia', m.data || '', cloneMap[m.clone_id] || '', loteMap[m.lote_id] || '', setorMap[m.setor_origem_id] || '', m.quantidade || 0, setorMap[m.setor_destino_id] || '']),
-    ];
-    const csv = linhas.map(l => l.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `viveiro_relatorio_${mesFmt}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const exportarPDF = async () => {
+    if (!contentRef.current) return;
+    setExportando(true);
+    try {
+      const el = contentRef.current;
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pdfW = pdf.internal.pageSize.getWidth();
+      const pdfH = pdf.internal.pageSize.getHeight();
+      const ratio = canvas.width / canvas.height;
+      const imgW = pdfW;
+      const imgH = imgW / ratio;
+      let posY = 0;
+      let remaining = imgH;
+      while (remaining > 0) {
+        pdf.addImage(imgData, 'PNG', 0, posY > 0 ? -(imgH - remaining) : 0, imgW, imgH);
+        remaining -= pdfH;
+        if (remaining > 0) { pdf.addPage(); posY += pdfH; }
+      }
+      pdf.save(`viveiro_relatorio_${format(mesDate, 'yyyy-MM')}.pdf`);
+    } finally {
+      setExportando(false);
+    }
   };
 
   const kpis = [
