@@ -103,46 +103,66 @@ export default function Previsao() {
     <div>
       <PageHeader title="Previsão de Produção" description="Projeções semanais, mensais e anuais baseadas no histórico" />
 
-      {/* Filtros */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <Select value={cloneFiltro} onValueChange={setCloneFiltro}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Clone" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos os clones</SelectItem>
-            {clones.map(c => <SelectItem key={c.id} value={c.id}>{c.codigo_clone}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={loteFiltro} onValueChange={setLoteFiltro}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Lote" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos os lotes</SelectItem>
-            {lotes.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={periodo} onValueChange={setPeriodo}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Período" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7">Últimos 7 dias</SelectItem>
-            <SelectItem value="15">Últimos 15 dias</SelectItem>
-            <SelectItem value="30">Últimos 30 dias</SelectItem>
-            <SelectItem value="60">Últimos 60 dias</SelectItem>
-            <SelectItem value="90">Últimos 90 dias</SelectItem>
-          </SelectContent>
-        </Select>
-        <div className="flex items-center gap-2">
-           <Label className="text-sm whitespace-nowrap">Meta anual:</Label>
-           <Input 
-             type="text" 
-             placeholder="Ex: 600.000" 
-             className="w-36" 
-             value={meta ? Number(meta).toLocaleString('pt-BR') : ''} 
-             onChange={e => setMeta(e.target.value.replace(/\D/g, ''))} 
-           />
+      {/* Seção de Filtros - Histórico */}
+      <div className="mb-8 pb-6 border-b">
+        <h2 className="text-base font-semibold mb-4 text-foreground">📊 Baseado no Histórico Passado</h2>
+        <div className="flex flex-wrap gap-3">
+          <Select value={cloneFiltro} onValueChange={setCloneFiltro}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Clone" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os clones</SelectItem>
+              {clones.map(c => <SelectItem key={c.id} value={c.id}>{c.codigo_clone}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={loteFiltro} onValueChange={setLoteFiltro}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Lote" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os lotes</SelectItem>
+              {lotes.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={periodo} onValueChange={setPeriodo}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Período histórico" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Últimos 7 dias</SelectItem>
+              <SelectItem value="15">Últimos 15 dias</SelectItem>
+              <SelectItem value="30">Últimos 30 dias</SelectItem>
+              <SelectItem value="60">Últimos 60 dias</SelectItem>
+              <SelectItem value="90">Últimos 90 dias</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <div className="flex items-center gap-2">
-          <Label className="text-sm whitespace-nowrap">% Pegamento:</Label>
-          <Input type="number" min="1" max="100" placeholder="Ex: 85" className="w-24" value={pegamento} onChange={e => setPegamento(e.target.value)} />
-          <span className="text-xs text-muted-foreground">% das mudas que chegam vivas à expedição</span>
+      </div>
+
+      {/* Seção de Metas - Futuro */}
+      <div className="mb-8">
+        <h2 className="text-base font-semibold mb-4 text-foreground">🎯 Metas Futuras de Produção</h2>
+        <div className="flex flex-wrap gap-4">
+          <div className="flex items-center gap-2">
+            <Label className="text-sm whitespace-nowrap">Meta anual:</Label>
+            <Input 
+              type="text" 
+              placeholder="Ex: 600.000" 
+              className="w-36" 
+              value={meta ? Number(meta).toLocaleString('pt-BR') : ''} 
+              onChange={e => setMeta(e.target.value.replace(/\D/g, ''))} 
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Label className="text-sm whitespace-nowrap">% Pegamento:</Label>
+            <Input type="number" min="1" max="100" placeholder="Ex: 85" className="w-24" value={pegamento} onChange={e => setPegamento(e.target.value)} />
+            <span className="text-xs text-muted-foreground">% das mudas que chegam vivas</span>
+          </div>
+          <Select value={periodoFrente} onValueChange={setPerioodoFrente}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Período futuro" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Próximos 7 dias</SelectItem>
+              <SelectItem value="15">Próximos 15 dias</SelectItem>
+              <SelectItem value="30">Próximos 30 dias</SelectItem>
+              <SelectItem value="60">Próximos 60 dias</SelectItem>
+              <SelectItem value="90">Próximos 90 dias</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       {Number(pegamento) < 100 && (
