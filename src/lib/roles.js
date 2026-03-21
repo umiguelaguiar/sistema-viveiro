@@ -9,6 +9,7 @@ export const ROLES = {
 
 // Routes accessible per role
 export const ROLE_ROUTES = {
+  [ROLES.VISITANTE]: [],
   [ROLES.USUARIO]: ['/', '/estoque', '/relatorio', '/porcentagem', '/previsao', '/insumos'],
   [ROLES.SUPERVISOR]: [
     '/', '/estoque', '/relatorio', '/porcentagem', '/previsao', '/insumos',
