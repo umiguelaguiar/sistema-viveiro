@@ -106,19 +106,41 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-1">Visão geral do viveiro de mudas</p>
         </div>
-        <Select value={mesFiltro} onValueChange={setMesFiltro}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrar por mês" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos os meses</SelectItem>
-            {monthOptions.map(m => (
-              <SelectItem key={m} value={m}>
-                {format(new Date(m + '-01'), 'MMMM yyyy').replace(/^\w/, c => c.toUpperCase())}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-wrap gap-2">
+          <Select value={mesFiltro} onValueChange={setMesFiltro}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Filtrar por mês" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os meses</SelectItem>
+              {monthOptions.map(m => (
+                <SelectItem key={m} value={m}>
+                  {format(new Date(m + '-01'), 'MMMM yyyy').replace(/^\w/, c => c.toUpperCase())}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={cloneFiltro} onValueChange={v => { setCloneFiltro(v); setLoteFiltro('todos'); }}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Filtrar por clone" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os clones</SelectItem>
+              {clones.map(c => <SelectItem key={c.id} value={c.id}>{c.codigo_clone}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
+          <Select value={loteFiltro} onValueChange={setLoteFiltro}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Filtrar por lote" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os lotes</SelectItem>
+              {lotesFiltradosPorClone.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* KPIs */}
