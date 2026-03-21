@@ -44,7 +44,7 @@ export function useProducoes() {
 export function useMovimentacoes() {
   return useQuery({
     queryKey: ['movimentacoes'],
-    queryFn: () => base44.entities.Movimentacao.list('-data', 500),
+    queryFn: () => base44.entities.Movimentacao.list('-data', 5000),
     initialData: [],
   });
 }
