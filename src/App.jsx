@@ -5,12 +5,22 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-// Add page imports here
+
+import AppLayout from '@/components/layout/AppLayout';
+import Dashboard from '@/pages/Dashboard';
+import Especies from '@/pages/Especies';
+import Clones from '@/pages/Clones';
+import Lotes from '@/pages/Lotes';
+import Producao from '@/pages/Producao';
+import Transferencia from '@/pages/Transferencia';
+import Expedicao from '@/pages/Expedicao';
+import Perdas from '@/pages/Perdas';
+import Insumos from '@/pages/Insumos';
+import MovimentacaoInsumos from '@/pages/MovimentacaoInsumos';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -19,29 +29,35 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
       navigateToLogin();
       return null;
     }
   }
 
-  // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/especies" element={<Especies />} />
+        <Route path="/clones" element={<Clones />} />
+        <Route path="/lotes" element={<Lotes />} />
+        <Route path="/producao" element={<Producao />} />
+        <Route path="/transferencia" element={<Transferencia />} />
+        <Route path="/expedicao" element={<Expedicao />} />
+        <Route path="/perdas" element={<Perdas />} />
+        <Route path="/insumos" element={<Insumos />} />
+        <Route path="/movimentacao-insumos" element={<MovimentacaoInsumos />} />
+      </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
 };
 
-
 function App() {
-
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
