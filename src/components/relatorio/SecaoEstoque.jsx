@@ -14,14 +14,14 @@ export default function SecaoEstoque({ estoquePorSetor, estoquePorClone, estoque
       <h2 className="flex items-center gap-2 text-lg font-bold mb-4 text-foreground">
         <Boxes className="w-5 h-5 text-blue-500" /> 📦 Estoque
       </h2>
-      {/* Primeira linha: Total + setores resumidos */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+      {/* Resumo: Total + 3 setores principais */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <Card className="p-4">
           <p className="text-xs text-muted-foreground uppercase tracking-wider">Estoque Total</p>
           <p className="text-3xl font-bold text-foreground mt-1">{estoqueTotal.toLocaleString('pt-BR')}</p>
           <p className="text-xs text-muted-foreground mt-0.5">mudas em estoque</p>
         </Card>
-        {estoquePorSetor.slice(0, 3).map((s, i) => (
+        {estoquePorSetor.map((s, i) => (
           <Card key={i} className="p-4">
             <p className="text-xs text-muted-foreground uppercase tracking-wider truncate">{s.nome}</p>
             <p className="text-2xl font-bold mt-1" style={{ color: COLORS[i % COLORS.length] }}>{s.total.toLocaleString('pt-BR')}</p>
@@ -29,19 +29,6 @@ export default function SecaoEstoque({ estoquePorSetor, estoquePorClone, estoque
           </Card>
         ))}
       </div>
-      
-      {/* Segunda linha: setores restantes (se houver) */}
-      {estoquePorSetor.length > 3 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
-          {estoquePorSetor.slice(3).map((s, i) => (
-            <Card key={i + 3} className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider truncate">{s.nome}</p>
-              <p className="text-2xl font-bold mt-1" style={{ color: COLORS[(i + 3) % COLORS.length] }}>{s.total.toLocaleString('pt-BR')}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{estoqueTotal > 0 ? ((s.total / estoqueTotal) * 100).toFixed(1) : 0}%</p>
-            </Card>
-          ))}
-        </div>
-      )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHeader><CardTitle className="text-sm">🍰 Distribuição por Setor</CardTitle></CardHeader>
