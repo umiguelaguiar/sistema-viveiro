@@ -8,22 +8,37 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus } from 'lucide-react';
+import { Plus, Pencil } from 'lucide-react';
 
 export default function Especies() {
   const { data: especies, isLoading } = useEspecies();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ nome: '', tempo_producao_dias: '' });
 
   const handleSave = async () => {
-    await base44.entities.Especie.create({
-      ...form,
-      tempo_producao_dias: form.tempo_producao_dias ? Number(form.tempo_producao_dias) : undefined
-    });
+    if (editingId) {
+      await base44.entities.Especie.update(editingId, {
+        ...form,
+        tempo_producao_dias: form.tempo_producao_dias ? Number(form.tempo_producao_dias) : undefined
+      });
+    } else {
+      await base44.entities.Especie.create({
+        ...form,
+        tempo_producao_dias: form.tempo_producao_dias ? Number(form.tempo_producao_dias) : undefined
+      });
+    }
     queryClient.invalidateQueries({ queryKey: ['especies'] });
     setForm({ nome: '', tempo_producao_dias: '' });
+    setEditingId(null);
     setOpen(false);
+  };
+
+  const handleEdit = (row) => {
+    setEditingId(row.id);
+    setForm({ nome: row.nome || '', tempo_producao_dias: row.tempo_producao_dias || '' });
+    setOpen(true);
   };
 
   const handleDelete = async (id) => {
@@ -34,6 +49,14 @@ export default function Especies() {
   const columns = [
     { header: 'Nome', accessor: 'nome' },
     { header: 'Tempo Produção (dias)', render: (row) => row.tempo_producao_dias || '—' },
+    {
+      header: 'Ações',
+      render: (row) => (
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => handleEdit(row)}>
+          <Pencil className="w-4 h-4" />
+        </Button>
+      )
+    },
   ];
 
   return (
@@ -42,7 +65,7 @@ export default function Especies() {
         title="Espécies"
         description="Cadastro de espécies de eucalipto"
         action={
-          <Button onClick={() => setOpen(true)} className="gap-2">
+          <Button onClick={() => { setEditingId(null); setForm({ nome: '', tempo_producao_dias: '' }); setOpen(true); }} className="gap-2">
             <Plus className="w-4 h-4" /> Nova Espécie
           </Button>
         }
@@ -51,7 +74,7 @@ export default function Especies() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Nova Espécie</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingId ? 'Editar Espécie' : 'Nova Espécie'}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Nome</Label>

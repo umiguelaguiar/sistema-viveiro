@@ -133,7 +133,7 @@ export function getMortalityRate(producaoTotal, perdasTotal) {
 // Determina de qual setor a expedição deve sair
 // Prioridade: Rustificação > Sombreamento > Casa de Vegetação
 export function getExpedicaoSetor(stock, setores, cloneId, loteId, quantidade) {
-  const prioridade = ['Rustificação', 'Sombreamento', 'Casa de Vegetação'];
+  const prioridade = ['Rustificação', 'Casa de Sombra', 'Casa de Vegetação'];
   
   for (const nomeSetor of prioridade) {
     const setor = setores.find(s => s.nome === nomeSetor);
