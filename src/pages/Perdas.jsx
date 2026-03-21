@@ -27,7 +27,7 @@ export default function Perdas() {
 
   const stock = useMemo(() => calculateStock(producoes, movimentacoes, perdas), [producoes, movimentacoes, perdas]);
 
-  const filteredLotes = form.clone_id ? lotes.filter(l => l.clone_id === form.clone_id) : lotes;
+
   const disponivel = form.setor_id && form.clone_id && form.lote_id
     ? getStockForSetorCloneLote(stock, form.setor_id, form.clone_id, form.lote_id)
     : 0;
@@ -80,7 +80,7 @@ export default function Perdas() {
           <div className="space-y-4">
             <div>
               <Label>Clone</Label>
-              <Select value={form.clone_id} onValueChange={v => setForm({ ...form, clone_id: v, lote_id: '' })}>
+              <Select value={form.clone_id} onValueChange={v => setForm({ ...form, clone_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   {clones.map(c => <SelectItem key={c.id} value={c.id}>{c.codigo_clone}</SelectItem>)}
@@ -92,7 +92,7 @@ export default function Perdas() {
               <Select value={form.lote_id} onValueChange={v => setForm({ ...form, lote_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
-                  {filteredLotes.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo}</SelectItem>)}
+                  {lotes.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

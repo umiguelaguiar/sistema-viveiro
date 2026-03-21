@@ -29,7 +29,7 @@ export default function Transferencia() {
   const stock = useMemo(() => calculateStock(producoes, movimentacoes, perdas), [producoes, movimentacoes, perdas]);
 
   const transferencias = movimentacoes.filter(m => m.tipo === 'transferencia');
-  const filteredLotes = form.clone_id ? lotes.filter(l => l.clone_id === form.clone_id) : lotes;
+
 
   const disponivel = form.setor_origem_id && form.clone_id && form.lote_id
     ? getStockForSetorCloneLote(stock, form.setor_origem_id, form.clone_id, form.lote_id)
@@ -95,7 +95,7 @@ export default function Transferencia() {
           <div className="space-y-4">
             <div>
               <Label>Clone</Label>
-              <Select value={form.clone_id} onValueChange={v => setForm({ ...form, clone_id: v, lote_id: '' })}>
+              <Select value={form.clone_id} onValueChange={v => setForm({ ...form, clone_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   {clones.map(c => <SelectItem key={c.id} value={c.id}>{c.codigo_clone}</SelectItem>)}
@@ -107,7 +107,7 @@ export default function Transferencia() {
               <Select value={form.lote_id} onValueChange={v => setForm({ ...form, lote_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
-                  {filteredLotes.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo}</SelectItem>)}
+                  {lotes.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

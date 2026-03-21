@@ -29,7 +29,7 @@ export default function Expedicao() {
   const stock = useMemo(() => calculateStock(producoes, movimentacoes, perdas), [producoes, movimentacoes, perdas]);
 
   const expedicoes = movimentacoes.filter(m => m.tipo === 'expedicao');
-  const filteredLotes = form.clone_id ? lotes.filter(l => l.clone_id === form.clone_id) : lotes;
+
 
   const setorExpedicao = form.clone_id && form.lote_id && form.quantidade
     ? getExpedicaoSetor(stock, setores, form.clone_id, form.lote_id, Number(form.quantidade))
@@ -97,7 +97,7 @@ export default function Expedicao() {
           <div className="space-y-4">
             <div>
               <Label>Clone</Label>
-              <Select value={form.clone_id} onValueChange={v => setForm({ ...form, clone_id: v, lote_id: '' })}>
+              <Select value={form.clone_id} onValueChange={v => setForm({ ...form, clone_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   {clones.map(c => <SelectItem key={c.id} value={c.id}>{c.codigo_clone}</SelectItem>)}
@@ -109,7 +109,7 @@ export default function Expedicao() {
               <Select value={form.lote_id} onValueChange={v => setForm({ ...form, lote_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
-                  {filteredLotes.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo}</SelectItem>)}
+                  {lotes.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
