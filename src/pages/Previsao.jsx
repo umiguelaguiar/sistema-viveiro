@@ -45,23 +45,24 @@ export default function Previsao() {
     return f;
   }, [producoes, cloneFiltro, loteFiltro]);
 
-  // Média dos últimos 30 dias (apenas dias úteis: seg-sex)
+  // Média do período selecionado (apenas dias úteis: seg-sex)
   const hoje = new Date();
-  const ultimos30 = prodFiltradas.filter(p => {
+  const periodoNum = Number(periodo) || 30;
+  const ultimosPeriodo = prodFiltradas.filter(p => {
     if (!p.data) return false;
-    try { return isWithinInterval(parseISO(p.data), { start: subDays(hoje, 30), end: hoje }); } catch { return false; }
+    try { return isWithinInterval(parseISO(p.data), { start: subDays(hoje, periodoNum), end: hoje }); } catch { return false; }
   });
-  const totalUlt30 = ultimos30.reduce((s, p) => s + (p.quantidade || 0), 0);
+  const totalUltPeriodo = ultimosPeriodo.reduce((s, p) => s + (p.quantidade || 0), 0);
   
-  // Contar apenas dias úteis (seg-sex) nos últimos 30 dias
+  // Contar apenas dias úteis (seg-sex) no período
   let diasUteis = 0;
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < periodoNum; i++) {
     const d = new Date(hoje);
     d.setDate(d.getDate() - i);
     const dayOfWeek = d.getDay();
     if (dayOfWeek !== 0 && dayOfWeek !== 6) diasUteis++; // 0=dom, 6=sab
   }
-  const mediaDiaria = diasUteis > 0 ? totalUlt30 / diasUteis : 0;
+  const mediaDiaria = diasUteis > 0 ? totalUltPeriodo / diasUteis : 0;
 
   const taxaPegamento = Math.min(100, Math.max(0, Number(pegamento) || 100)) / 100;
 
