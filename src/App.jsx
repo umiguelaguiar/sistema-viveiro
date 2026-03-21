@@ -50,6 +50,11 @@ const AuthenticatedApp = () => {
     }
   }
 
+  // Usuário logado mas sem role = aguardando aprovação
+  if (isAuthenticated && user && !user.role) {
+    return <AguardandoPendente user={user} />;
+  }
+
   return (
     <Routes>
       <Route element={<AppLayout />}>
