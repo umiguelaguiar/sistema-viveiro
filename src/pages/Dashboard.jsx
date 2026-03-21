@@ -215,6 +215,23 @@ export default function Dashboard() {
         <KpiCard title="Expedido" value={totalExpedicao.toLocaleString('pt-BR')} icon={Truck} color="text-blue-600" />
       </div>
 
+      {/* Estoque por Setor */}
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Estoque por Setor</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {setores.map(s => {
+            const estoqueSetor = stockBySetor.find(x => x.setor.id === s.id)?.total || 0;
+            return (
+              <Card key={s.id} className="p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{s.nome}</p>
+                <p className="text-3xl font-bold text-foreground mt-2">{estoqueSetor.toLocaleString('pt-BR')}</p>
+                <p className="text-xs text-muted-foreground mt-1">mudas em estoque</p>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
       {/* KPIs eficiência */}
       <div className="grid grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4">
         <KpiCard title="Eficiência" value={`${eficiencia}%`} icon={TrendingUp}
