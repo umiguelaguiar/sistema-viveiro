@@ -121,6 +121,16 @@ export default function Backup() {
     setRestauracaoStatus(null);
     try {
       let totalInseridos = 0;
+      // First, clear all entities to prevent duplicates
+      for (const [chave] of Object.entries(backupParaRestaurar)) {
+        const entidade = ENTITY_MAP[chave];
+        if (!entidade) continue;
+        const todos = await base44.entities[entidade].list();
+        for (const item of todos) {
+          await base44.entities[entidade].delete(item.id);
+        }
+      }
+      // Then insert the backup data
       for (const [chave, registros] of Object.entries(backupParaRestaurar)) {
         const entidade = ENTITY_MAP[chave];
         if (!entidade || !Array.isArray(registros) || registros.length === 0) continue;

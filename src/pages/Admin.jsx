@@ -9,29 +9,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Shield, Users, Trash2 } from 'lucide-react';
 import PageHeader from '@/components/shared/PageHeader';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 function UserRow({ u, currentUserId }) {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const [role, setRole] = useState(u.role || ROLES.USUARIO);
 
   const updateMutation = useMutation({
     mutationFn: ({ id, role }) => base44.entities.User.update(id, { role }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      toast({ title: 'Cargo atualizado!' });
+      toast.success('Cargo atualizado!');
     },
-    onError: () => toast({ title: 'Erro ao atualizar cargo', variant: 'destructive' }),
+    onError: () => toast.error('Erro ao atualizar cargo'),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.User.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      toast({ title: 'Usuário removido com sucesso!' });
+      toast.success('Usuário removido com sucesso!');
     },
-    onError: () => toast({ title: 'Erro ao remover usuário', variant: 'destructive' }),
+    onError: () => toast.error('Erro ao remover usuário'),
   });
 
   const isSelf = u.id === currentUserId;

@@ -92,8 +92,8 @@ export default function Previsao() {
           </SelectContent>
         </Select>
         <div className="flex items-center gap-2">
-          <Label className="text-sm whitespace-nowrap">Meta mensal:</Label>
-          <Input type="number" placeholder="Ex: 50000" className="w-36" value={meta} onChange={e => setMeta(e.target.value)} />
+          <Label className="text-sm whitespace-nowrap">Meta anual:</Label>
+          <Input type="number" placeholder="Ex: 600000" className="w-36" value={meta} onChange={e => setMeta(e.target.value)} />
         </div>
         <div className="flex items-center gap-2">
           <Label className="text-sm whitespace-nowrap">% Pegamento:</Label>
@@ -120,8 +120,8 @@ export default function Previsao() {
               <p className="text-xs text-muted-foreground">mudas / dia</p>
             </div>
           </div>
-          {meta && <div className={`mt-2 text-xs font-medium ${previsaoDiaria >= (Number(meta) / 30) ? 'text-green-600' : 'text-amber-600'}`}>
-            Meta diária: {Math.round(Number(meta) / 30).toLocaleString('pt-BR')} — {previsaoDiaria >= (Number(meta) / 30) ? '✅ Atingida' : '⚠️ Abaixo'}
+          {meta && <div className={`mt-2 text-xs font-medium ${previsaoDiaria >= (Number(meta) / 365) ? 'text-green-600' : 'text-amber-600'}`}>
+            Meta diária: {Math.round(Number(meta) / 365).toLocaleString('pt-BR')} — {previsaoDiaria >= (Number(meta) / 365) ? '✅ Atingida' : '⚠️ Abaixo'}
           </div>}
         </Card>
 
@@ -136,8 +136,8 @@ export default function Previsao() {
               <p className="text-xs text-muted-foreground">mudas / 7 dias</p>
             </div>
           </div>
-          {meta && <div className={`mt-2 text-xs font-medium ${previsaoSemanal >= (Number(meta) / 4) ? 'text-green-600' : 'text-amber-600'}`}>
-            Meta semanal: {Math.round(Number(meta) / 4).toLocaleString('pt-BR')} — {previsaoSemanal >= (Number(meta) / 4) ? '✅ Atingida' : '⚠️ Abaixo'}
+          {meta && <div className={`mt-2 text-xs font-medium ${previsaoSemanal >= (Number(meta) / 52) ? 'text-green-600' : 'text-amber-600'}`}>
+            Meta semanal: {Math.round(Number(meta) / 52).toLocaleString('pt-BR')} — {previsaoSemanal >= (Number(meta) / 52) ? '✅ Atingida' : '⚠️ Abaixo'}
           </div>}
         </Card>
 
@@ -152,8 +152,8 @@ export default function Previsao() {
               <p className="text-xs text-muted-foreground">mudas / 30 dias</p>
             </div>
           </div>
-          {meta && <div className={`mt-2 text-xs font-medium ${previsaoMensal >= Number(meta) ? 'text-green-600' : 'text-amber-600'}`}>
-            Meta mensal: {Number(meta).toLocaleString('pt-BR')} — {previsaoMensal >= Number(meta) ? '✅ Atingida' : '⚠️ Abaixo'}
+          {meta && <div className={`mt-2 text-xs font-medium ${previsaoMensal >= (Number(meta) / 12) ? 'text-green-600' : 'text-amber-600'}`}>
+            Meta mensal: {Math.round(Number(meta) / 12).toLocaleString('pt-BR')} — {previsaoMensal >= (Number(meta) / 12) ? '✅ Atingida' : '⚠️ Abaixo'}
           </div>}
         </Card>
 
@@ -168,8 +168,8 @@ export default function Previsao() {
               <p className="text-xs text-muted-foreground">mudas / 365 dias</p>
             </div>
           </div>
-          {meta && <div className={`mt-2 text-xs font-medium ${previsaoAnual >= Number(meta) * 12 ? 'text-green-600' : 'text-amber-600'}`}>
-            Meta anual: {(Number(meta) * 12).toLocaleString('pt-BR')} — {previsaoAnual >= Number(meta) * 12 ? '✅ Atingida' : '⚠️ Abaixo'}
+          {meta && <div className={`mt-2 text-xs font-medium ${previsaoAnual >= Number(meta) ? 'text-green-600' : 'text-amber-600'}`}>
+            Meta anual: {Number(meta).toLocaleString('pt-BR')} — {previsaoAnual >= Number(meta) ? '✅ Atingida' : '⚠️ Abaixo'}
           </div>}
         </Card>
       </div>
