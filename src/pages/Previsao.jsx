@@ -156,10 +156,11 @@ export default function Previsao() {
           <Select value={periodoFrente} onValueChange={setPerioodoFrente}>
             <SelectTrigger className="w-44"><SelectValue placeholder="Período futuro" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="90">Próximos 3 meses</SelectItem>
-              <SelectItem value="180">Próximos 6 meses</SelectItem>
-              <SelectItem value="240">Próximos 8 meses</SelectItem>
-              <SelectItem value="360">Próximos 12 meses</SelectItem>
+              <SelectItem value="7">Próximos 7 dias</SelectItem>
+              <SelectItem value="15">Próximos 15 dias</SelectItem>
+              <SelectItem value="30">Próximos 30 dias</SelectItem>
+              <SelectItem value="60">Próximos 60 dias</SelectItem>
+              <SelectItem value="90">Próximos 90 dias</SelectItem>
             </SelectContent>
           </Select>
         </div>
