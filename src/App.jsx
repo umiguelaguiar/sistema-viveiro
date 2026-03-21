@@ -53,20 +53,20 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<RouteGuard><Dashboard /></RouteGuard>} />
         <Route path="/perfil" element={<RouteGuard><Perfil /></RouteGuard>} />
         <Route path="/admin" element={<RouteGuard><Admin /></RouteGuard>} />
-        <Route path="/porcentagem" element={<Porcentagem />} />
-        <Route path="/relatorio" element={<Relatorio />} />
-        <Route path="/especies" element={<Especies />} />
-        <Route path="/clones" element={<Clones />} />
-        <Route path="/lotes" element={<Lotes />} />
-        <Route path="/producao" element={<Producao />} />
-        <Route path="/transferencia" element={<Transferencia />} />
-        <Route path="/expedicao" element={<Expedicao />} />
-        <Route path="/perdas" element={<Perdas />} />
-        <Route path="/insumos" element={<Insumos />} />
-        <Route path="/movimentacao-insumos" element={<MovimentacaoInsumos />} />
-        <Route path="/estoque" element={<Estoque />} />
-        <Route path="/previsao" element={<Previsao />} />
-        <Route path="/backup" element={<Backup />} />
+        <Route path="/porcentagem" element={<RouteGuard><Porcentagem /></RouteGuard>} />
+        <Route path="/relatorio" element={<RouteGuard><Relatorio /></RouteGuard>} />
+        <Route path="/especies" element={<RouteGuard><Especies /></RouteGuard>} />
+        <Route path="/clones" element={<RouteGuard><Clones /></RouteGuard>} />
+        <Route path="/lotes" element={<RouteGuard><Lotes /></RouteGuard>} />
+        <Route path="/producao" element={<RouteGuard><Producao /></RouteGuard>} />
+        <Route path="/transferencia" element={<RouteGuard><Transferencia /></RouteGuard>} />
+        <Route path="/expedicao" element={<RouteGuard><Expedicao /></RouteGuard>} />
+        <Route path="/perdas" element={<RouteGuard><Perdas /></RouteGuard>} />
+        <Route path="/insumos" element={<RouteGuard><Insumos /></RouteGuard>} />
+        <Route path="/movimentacao-insumos" element={<RouteGuard><MovimentacaoInsumos /></RouteGuard>} />
+        <Route path="/estoque" element={<RouteGuard><Estoque /></RouteGuard>} />
+        <Route path="/previsao" element={<RouteGuard><Previsao /></RouteGuard>} />
+        <Route path="/backup" element={<RouteGuard><Backup /></RouteGuard>} />
       </Route>
       <Route path="/Dashboard" element={<Navigate to="/" replace />} />
       <Route path="*" element={<PageNotFound />} />
