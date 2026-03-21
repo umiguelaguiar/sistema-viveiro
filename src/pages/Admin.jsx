@@ -112,9 +112,6 @@ export default function Admin() {
         ))}
       </div>
 
-      {/* Solicitações de acesso */}
-      <SolicitacoesSection />
-
       {/* Permissions reference */}
       <Card className="mb-6">
         <CardHeader className="pb-3">
