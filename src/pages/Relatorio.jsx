@@ -118,6 +118,25 @@ export default function Relatorio() {
     });
   }, []);
 
+  const exportarCSV = () => {
+    const mesFmt = format(mesDate, 'yyyy-MM');
+    const linhas = [
+      ['Tipo', 'Data', 'Clone', 'Lote', 'Setor', 'Quantidade', 'Motivo/Destino'],
+      ...prodMes.map(p => ['Producao', p.data || '', cloneMap[p.clone_id] || '', loteMap[p.lote_id] || '', setorMap[p.setor_id] || '', p.quantidade || 0, '']),
+      ...perdasMes.map(p => ['Perda', p.data || '', cloneMap[p.clone_id] || '', loteMap[p.lote_id] || '', setorMap[p.setor_id] || '', p.quantidade || 0, p.motivo || '']),
+      ...expedicoesMes.map(m => ['Expedicao', m.data || '', cloneMap[m.clone_id] || '', loteMap[m.lote_id] || '', setorMap[m.setor_origem_id] || '', m.quantidade || 0, setorMap[m.setor_destino_id] || '']),
+      ...transferenciasMes.map(m => ['Transferencia', m.data || '', cloneMap[m.clone_id] || '', loteMap[m.lote_id] || '', setorMap[m.setor_origem_id] || '', m.quantidade || 0, setorMap[m.setor_destino_id] || '']),
+    ];
+    const csv = linhas.map(l => l.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `viveiro_relatorio_${mesFmt}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const kpis = [
     kpi('Produção no Mês', totalProd.toLocaleString('pt-BR'), 'text-primary'),
     kpi('Perdas no Mês', totalPerdas.toLocaleString('pt-BR'), 'text-destructive'),
