@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 import { Navigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
 import RouteGuard from '@/components/layout/RouteGuard';
 import Dashboard from '@/pages/Dashboard';
