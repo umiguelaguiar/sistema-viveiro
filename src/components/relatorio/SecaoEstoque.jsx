@@ -34,12 +34,12 @@ export default function SecaoEstoque({ estoquePorSetor, estoquePorClone, estoque
           <CardHeader><CardTitle className="text-sm">🍰 Distribuição por Setor</CardTitle></CardHeader>
           <CardContent>
             {pieData.length === 0 ? <p className="text-muted-foreground text-sm py-8 text-center">Sem estoque</p> : (
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
-                  <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={85} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                  <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} label={({ name, percent }) => `${name.length > 12 ? name.slice(0, 10) + '...' : name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
                     {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip formatter={(value) => value.toLocaleString('pt-BR')} />
                 </PieChart>
               </ResponsiveContainer>
             )}
