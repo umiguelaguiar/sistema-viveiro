@@ -142,7 +142,7 @@ export default function Previsao() {
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Previsão Semanal</p>
               <p className="text-2xl font-bold text-primary">{previsaoSemanal.toLocaleString('pt-BR')}</p>
-              <p className="text-xs text-muted-foreground">mudas / 7 dias</p>
+              <p className="text-xs text-muted-foreground">mudas / 5 dias úteis</p>
             </div>
           </div>
           {meta && <div className={`mt-2 text-xs font-medium ${previsaoSemanal >= (Number(meta) / 52) ? 'text-green-600' : 'text-amber-600'}`}>
