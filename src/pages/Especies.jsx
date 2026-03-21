@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Pencil } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Especies() {
   const { data: especies, isLoading } = useEspecies();
@@ -42,8 +43,14 @@ export default function Especies() {
   };
 
   const handleDelete = async (id) => {
-    await base44.entities.Especie.delete(id);
-    queryClient.invalidateQueries({ queryKey: ['especies'] });
+    if (!confirm('Tem certeza que deseja remover esta espécie?')) return;
+    try {
+      await base44.entities.Especie.delete(id);
+      queryClient.invalidateQueries({ queryKey: ['especies'] });
+      toast.success('Espécie removida com sucesso!');
+    } catch (err) {
+      toast.error('Erro ao remover espécie: ' + (err?.message || 'Tente novamente'));
+    }
   };
 
   const columns = [
