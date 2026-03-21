@@ -47,6 +47,8 @@ export default function Transferencia() {
       quantidade: qty
     });
     queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
+    queryClient.invalidateQueries({ queryKey: ['producoes'] });
+    queryClient.invalidateQueries({ queryKey: ['perdas'] });
     setForm({ lote_id: '', clone_id: '', quantidade: '', setor_origem_id: '', setor_destino_id: '', data: todayLocal() });
     setOpen(false);
   };
@@ -54,6 +56,8 @@ export default function Transferencia() {
   const handleDelete = async (id) => {
     await base44.entities.Movimentacao.delete(id);
     queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
+    queryClient.invalidateQueries({ queryKey: ['producoes'] });
+    queryClient.invalidateQueries({ queryKey: ['perdas'] });
   };
 
   const cloneMap = {};
