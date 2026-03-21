@@ -97,6 +97,22 @@ export default function Previsao() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card className="p-4">
           <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
+              <Sun className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Previsão Diária</p>
+              <p className="text-2xl font-bold text-green-600">{Math.round(mediaDiaria).toLocaleString('pt-BR')}</p>
+              <p className="text-xs text-muted-foreground">mudas / dia</p>
+            </div>
+          </div>
+          {meta && <div className={`mt-2 text-xs font-medium ${Math.round(mediaDiaria) >= (Number(meta) / 30) ? 'text-green-600' : 'text-amber-600'}`}>
+            Meta diária: {Math.round(Number(meta) / 30).toLocaleString('pt-BR')} — {Math.round(mediaDiaria) >= (Number(meta) / 30) ? '✅ Atingida' : '⚠️ Abaixo'}
+          </div>}
+        </Card>
+
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Calendar className="w-5 h-5 text-primary" />
             </div>
