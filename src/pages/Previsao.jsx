@@ -23,6 +23,7 @@ export default function Previsao() {
   const [cloneFiltro, setCloneFiltro] = useState('todos');
   const [loteFiltro, setLoteFiltro] = useState('todos');
   const [meta, setMeta] = useState('');
+  const [pegamento, setPegamento] = useState('100');
 
   const prodFiltradas = useMemo(() => {
     let f = producoes;
