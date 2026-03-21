@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import { subDays, format, subMonths, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { TrendingUp, Calendar, Target } from 'lucide-react';
+import { TrendingUp, Calendar, Target, Sun } from 'lucide-react';
 
 const COLORS = ['hsl(152, 55%, 28%)', 'hsl(36, 80%, 50%)', 'hsl(200, 60%, 45%)'];
 
