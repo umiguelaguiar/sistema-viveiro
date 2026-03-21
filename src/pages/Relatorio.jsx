@@ -2,27 +2,30 @@ import React, { useMemo, useState, useRef } from 'react';
 import { useProducoes, useMovimentacoes, usePerdas, useClones, useSetores, useLotes } from '@/hooks/useNurseryData';
 import { calculateStock } from '@/lib/stockCalculations';
 import PageHeader from '@/components/shared/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import RelatorioFiltros from '@/components/relatorio/RelatorioFiltros';
+import ResumoExecutivo from '@/components/relatorio/ResumoExecutivo';
+import SecaoProducao from '@/components/relatorio/SecaoProducao';
+import SecaoPerdas from '@/components/relatorio/SecaoPerdas';
+import SecaoEstoque from '@/components/relatorio/SecaoEstoque';
+import SecaoFluxo from '@/components/relatorio/SecaoFluxo';
+import SecaoExpedicao from '@/components/relatorio/SecaoExpedicao';
+import SecaoEficiencia from '@/components/relatorio/SecaoEficiencia';
+import SecaoAnaliseClone from '@/components/relatorio/SecaoAnaliseClone';
+import SecaoPrevisoes from '@/components/relatorio/SecaoPrevisoes';
+import AlertasGerenciais from '@/components/relatorio/AlertasGerenciais';
+import TabelaCompleta from '@/components/relatorio/TabelaCompleta';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, LineChart, Line
-} from 'recharts';
-import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, subMonths } from 'date-fns';
+import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, subMonths, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
-const COLORS = ['#2d7a4f', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444', '#10b981', '#f97316'];
-
-function kpi(label, value, color = 'text-foreground') {
-  return { label, value, color };
-}
 
 export default function Relatorio() {
   const [mes, setMes] = useState(format(new Date(), 'yyyy-MM'));
+  const [cloneFiltro, setCloneFiltro] = useState('todos');
+  const [loteFiltro, setLoteFiltro] = useState('todos');
+  const [setorFiltro, setSetorFiltro] = useState('todos');
   const [exportando, setExportando] = useState(false);
   const contentRef = useRef(null);
 
@@ -38,272 +41,168 @@ export default function Relatorio() {
   const loteMap = useMemo(() => Object.fromEntries(lotes.map(l => [l.id, l.codigo])), [lotes]);
 
   const mesDate = useMemo(() => new Date(mes + '-15'), [mes]);
-  const intervalo = useMemo(() => ({
-    start: startOfMonth(mesDate),
-    end: endOfMonth(mesDate),
-  }), [mesDate]);
+  const intervalo = useMemo(() => ({ start: startOfMonth(mesDate), end: endOfMonth(mesDate) }), [mesDate]);
+  const inInterval = (d) => { try { return isWithinInterval(parseISO(d), intervalo); } catch { return false; } };
 
-  const inInterval = (d) => {
-    try { return isWithinInterval(parseISO(d), intervalo); } catch { return false; }
+  // Filtros aplicados
+  const applyFilters = (arr, campo_clone = 'clone_id', campo_lote = 'lote_id', campo_setor = 'setor_id') => {
+    return arr.filter(r => {
+      if (cloneFiltro !== 'todos' && r[campo_clone] !== cloneFiltro) return false;
+      if (loteFiltro !== 'todos' && r[campo_lote] !== loteFiltro) return false;
+      if (setorFiltro !== 'todos' && r[campo_setor] !== setorFiltro) return false;
+      return true;
+    });
   };
 
-  const prodMes = useMemo(() => producoes.filter(p => inInterval(p.data)), [producoes, intervalo]);
-  const perdasMes = useMemo(() => perdas.filter(p => inInterval(p.data)), [perdas, intervalo]);
-  const expedicoesMes = useMemo(() => movimentacoes.filter(m => m.tipo === 'expedicao' && inInterval(m.data)), [movimentacoes, intervalo]);
-  const transferenciasMes = useMemo(() => movimentacoes.filter(m => m.tipo === 'transferencia' && inInterval(m.data)), [movimentacoes, intervalo]);
+  const prodMes = useMemo(() => applyFilters(producoes.filter(p => inInterval(p.data))), [producoes, intervalo, cloneFiltro, loteFiltro, setorFiltro]);
+  const perdasMes = useMemo(() => applyFilters(perdas.filter(p => inInterval(p.data))), [perdas, intervalo, cloneFiltro, loteFiltro, setorFiltro]);
+  const expMes = useMemo(() => applyFilters(movimentacoes.filter(m => m.tipo === 'expedicao' && inInterval(m.data))), [movimentacoes, intervalo, cloneFiltro, loteFiltro, setorFiltro]);
+  const transfMes = useMemo(() => applyFilters(movimentacoes.filter(m => m.tipo === 'transferencia' && inInterval(m.data))), [movimentacoes, intervalo, cloneFiltro, loteFiltro, setorFiltro]);
 
   const totalProd = prodMes.reduce((s, p) => s + (p.quantidade || 0), 0);
   const totalPerdas = perdasMes.reduce((s, p) => s + (p.quantidade || 0), 0);
-  const totalExpedicao = expedicoesMes.reduce((s, m) => s + (m.quantidade || 0), 0);
-  const totalTransf = transferenciasMes.reduce((s, m) => s + (m.quantidade || 0), 0);
-  const taxaPerda = totalProd > 0 ? ((totalPerdas / totalProd) * 100).toFixed(1) : 0;
+  const totalExp = expMes.reduce((s, m) => s + (m.quantidade || 0), 0);
+  const totalTransf = transfMes.reduce((s, m) => s + (m.quantidade || 0), 0);
+  const taxaPerda = totalProd > 0 ? (totalPerdas / totalProd) * 100 : 0;
+  const eficiencia = totalProd > 0 ? ((totalProd - totalPerdas) / totalProd) * 100 : 0;
 
-  // Produção por clone no mês
-  const prodPorClone = useMemo(() => {
-    const map = {};
-    prodMes.forEach(p => {
-      const nome = cloneMap[p.clone_id] || 'Desconhecido';
-      map[nome] = (map[nome] || 0) + (p.quantidade || 0);
-    });
-    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
-  }, [prodMes, cloneMap]);
-
-  // Perdas por clone
-  const perdasPorClone = useMemo(() => {
-    const map = {};
-    perdasMes.forEach(p => {
-      const nome = cloneMap[p.clone_id] || 'Desconhecido';
-      map[nome] = (map[nome] || 0) + (p.quantidade || 0);
-    });
-    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
-  }, [perdasMes, cloneMap]);
-
-  // Produção por setor
-  const prodPorSetor = useMemo(() => {
-    const map = {};
-    prodMes.forEach(p => {
-      const nome = setorMap[p.setor_id] || 'Desconhecido';
-      map[nome] = (map[nome] || 0) + (p.quantidade || 0);
-    });
-    return Object.entries(map).map(([name, value]) => ({ name, value }));
-  }, [prodMes, setorMap]);
-
-  // Estoque atual geral
+  // Estoque
   const stock = useMemo(() => calculateStock(producoes, movimentacoes, perdas), [producoes, movimentacoes, perdas]);
   const estoqueTotal = useMemo(() => {
     let total = 0;
-    Object.values(stock).forEach(byClone => {
-      Object.values(byClone).forEach(byLote => {
-        Object.values(byLote).forEach(qty => { total += Math.max(0, qty); });
-      });
-    });
+    Object.values(stock).forEach(byClone => Object.values(byClone).forEach(byLote => Object.values(byLote).forEach(qty => { total += Math.max(0, qty); })));
     return total;
   }, [stock]);
 
-  // Evolução dos últimos 6 meses
-  const evolucao = useMemo(() => {
-    return Array.from({ length: 6 }, (_, i) => {
-      const d = subMonths(mesDate, 5 - i);
-      const label = format(d, 'MMM/yy', { locale: ptBR });
-      const iv = { start: startOfMonth(d), end: endOfMonth(d) };
-      const inIv = (dt) => { try { return isWithinInterval(parseISO(dt), iv); } catch { return false; } };
-      const prod = producoes.filter(p => inIv(p.data)).reduce((s, p) => s + (p.quantidade || 0), 0);
-      const perd = perdas.filter(p => inIv(p.data)).reduce((s, p) => s + (p.quantidade || 0), 0);
-      const exped = movimentacoes.filter(m => m.tipo === 'expedicao' && inIv(m.data)).reduce((s, m) => s + (m.quantidade || 0), 0);
-      return { label, prod, perd, exped };
+  // Estoque por setor
+  const estoquePorSetor = useMemo(() => {
+    const map = {};
+    setores.forEach(s => { map[s.id] = { nome: s.nome, total: 0 }; });
+    Object.entries(stock).forEach(([setorId, byClone]) => {
+      const total = Object.values(byClone).reduce((s, byLote) => s + Object.values(byLote).reduce((a, q) => a + Math.max(0, q), 0), 0);
+      if (map[setorId]) map[setorId].total = total;
+      else map[setorId] = { nome: setorMap[setorId] || setorId, total };
     });
-  }, [mesDate, producoes, perdas, movimentacoes]);
+    return Object.values(map).filter(s => s.total > 0);
+  }, [stock, setores, setorMap]);
 
-  // Meses disponíveis (últimos 24)
-  const mesesDisponiveis = useMemo(() => {
-    return Array.from({ length: 24 }, (_, i) => {
-      const d = subMonths(new Date(), i);
-      return { value: format(d, 'yyyy-MM'), label: format(d, 'MMMM yyyy', { locale: ptBR }) };
+  // Estoque por clone
+  const estoquePorClone = useMemo(() => {
+    const map = {};
+    Object.entries(stock).forEach(([, byClone]) => {
+      Object.entries(byClone).forEach(([cloneId, byLote]) => {
+        const total = Object.values(byLote).reduce((s, q) => s + Math.max(0, q), 0);
+        const nome = cloneMap[cloneId] || cloneId;
+        map[nome] = (map[nome] || 0) + total;
+      });
     });
-  }, []);
+    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+  }, [stock, cloneMap]);
+
+  // Produção por clone e mês anterior para comparação
+  const prodMesAnt = useMemo(() => {
+    const ivAnt = { start: startOfMonth(subMonths(mesDate, 1)), end: endOfMonth(subMonths(mesDate, 1)) };
+    return producoes.filter(p => { try { return isWithinInterval(parseISO(p.data), ivAnt); } catch { return false; } })
+      .reduce((s, p) => s + (p.quantidade || 0), 0);
+  }, [producoes, mesDate]);
+
+  // Análise por clone
+  const analiseClones = useMemo(() => {
+    const map = {};
+    clones.forEach(c => { map[c.id] = { nome: c.codigo_clone, prod: 0, perdas: 0, exp: 0 }; });
+    prodMes.forEach(p => { if (map[p.clone_id]) map[p.clone_id].prod += p.quantidade || 0; });
+    perdasMes.forEach(p => { if (map[p.clone_id]) map[p.clone_id].perdas += p.quantidade || 0; });
+    expMes.forEach(m => { if (map[m.clone_id]) map[m.clone_id].exp += m.quantidade || 0; });
+    return Object.values(map)
+      .filter(c => c.prod > 0 || c.perdas > 0)
+      .map(c => ({
+        ...c,
+        mortalidade: c.prod > 0 ? ((c.perdas / c.prod) * 100).toFixed(1) : '0.0',
+        estoque: (estoquePorClone.find(e => e.name === c.nome)?.value || 0),
+      }))
+      .sort((a, b) => b.prod - a.prod);
+  }, [prodMes, perdasMes, expMes, clones, estoquePorClone]);
+
+  // Evolução 6 meses
+  const evolucao = useMemo(() => Array.from({ length: 6 }, (_, i) => {
+    const d = subMonths(mesDate, 5 - i);
+    const iv = { start: startOfMonth(d), end: endOfMonth(d) };
+    const inIv = (dt) => { try { return isWithinInterval(parseISO(dt), iv); } catch { return false; } };
+    return {
+      label: format(d, 'MMM/yy', { locale: ptBR }),
+      prod: producoes.filter(p => inIv(p.data)).reduce((s, p) => s + (p.quantidade || 0), 0),
+      perd: perdas.filter(p => inIv(p.data)).reduce((s, p) => s + (p.quantidade || 0), 0),
+      exped: movimentacoes.filter(m => m.tipo === 'expedicao' && inIv(m.data)).reduce((s, m) => s + (m.quantidade || 0), 0),
+    };
+  }), [mesDate, producoes, perdas, movimentacoes]);
+
+  // Média diária para previsões
+  const hoje = new Date();
+  const ultimos30Prod = producoes.filter(p => { try { return isWithinInterval(parseISO(p.data), { start: subDays(hoje, 30), end: hoje }); } catch { return false; } });
+  const mediaDiaria = ultimos30Prod.reduce((s, p) => s + (p.quantidade || 0), 0) / 30;
+
+  const mesesDisponiveis = useMemo(() => Array.from({ length: 24 }, (_, i) => {
+    const d = subMonths(new Date(), i);
+    return { value: format(d, 'yyyy-MM'), label: format(d, 'MMMM yyyy', { locale: ptBR }) };
+  }), []);
 
   const exportarPDF = async () => {
     if (!contentRef.current) return;
     setExportando(true);
     try {
-      const el = contentRef.current;
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const canvas = await html2canvas(contentRef.current, { scale: 1.5, useCORS: true, backgroundColor: '#ffffff' });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pdfW = pdf.internal.pageSize.getWidth();
       const pdfH = pdf.internal.pageSize.getHeight();
-      const ratio = canvas.width / canvas.height;
-      const imgW = pdfW;
-      const imgH = imgW / ratio;
-      let posY = 0;
-      let remaining = imgH;
+      const imgH = (canvas.height * pdfW) / canvas.width;
+      let posY = 0, remaining = imgH;
       while (remaining > 0) {
-        pdf.addImage(imgData, 'PNG', 0, posY > 0 ? -(imgH - remaining) : 0, imgW, imgH);
+        pdf.addImage(imgData, 'PNG', 0, posY > 0 ? -(imgH - remaining) : 0, pdfW, imgH);
         remaining -= pdfH;
         if (remaining > 0) { pdf.addPage(); posY += pdfH; }
       }
-      pdf.save(`viveiro_relatorio_${format(mesDate, 'yyyy-MM')}.pdf`);
-    } finally {
-      setExportando(false);
-    }
+      pdf.save(`viveiro_relatorio_${mes}.pdf`);
+    } finally { setExportando(false); }
   };
 
-  const kpis = [
-    kpi('Produção no Mês', totalProd.toLocaleString('pt-BR'), 'text-primary'),
-    kpi('Perdas no Mês', totalPerdas.toLocaleString('pt-BR'), 'text-destructive'),
-    kpi('Taxa de Perda', `${taxaPerda}%`, Number(taxaPerda) > 10 ? 'text-destructive' : 'text-primary'),
-    kpi('Expedições', totalExpedicao.toLocaleString('pt-BR'), 'text-blue-600'),
-    kpi('Transferências', totalTransf.toLocaleString('pt-BR'), 'text-amber-600'),
-    kpi('Estoque Atual Total', estoqueTotal.toLocaleString('pt-BR'), 'text-primary'),
-  ];
+  const data = { totalProd, totalPerdas, totalExp, totalTransf, taxaPerda, eficiencia, estoqueTotal, prodMesAnt, mediaDiaria };
 
   return (
-    <div ref={contentRef}>
+    <div>
       <PageHeader
-        title="Relatório Mensal"
-        description="Visão consolidada das operações do viveiro"
+        title="Relatório Gerencial"
+        description="Análise completa das operações do viveiro"
         action={
-          <div className="flex items-center gap-2">
-            <Select value={mes} onValueChange={setMes}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {mesesDisponiveis.map(m => (
-                  <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={exportarPDF} disabled={exportando} className="gap-2">
-              {exportando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              {exportando ? 'Exportando...' : 'Exportar PDF'}
-            </Button>
-          </div>
+          <Button variant="outline" onClick={exportarPDF} disabled={exportando} className="gap-2">
+            {exportando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {exportando ? 'Exportando...' : 'Exportar PDF'}
+          </Button>
         }
       />
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-        {kpis.map((k, i) => (
-          <Card key={i}>
-            <CardContent className="pt-4 pb-4">
-              <p className="text-xs text-muted-foreground mb-1">{k.label}</p>
-              <p className={`text-2xl font-bold ${k.color}`}>{k.value}</p>
-            </CardContent>
-          </Card>
-        ))}
+      <RelatorioFiltros
+        mes={mes} setMes={setMes}
+        cloneFiltro={cloneFiltro} setCloneFiltro={setCloneFiltro}
+        loteFiltro={loteFiltro} setLoteFiltro={setLoteFiltro}
+        setorFiltro={setorFiltro} setSetorFiltro={setSetorFiltro}
+        clones={clones} lotes={lotes} setores={setores}
+        mesesDisponiveis={mesesDisponiveis}
+      />
+
+      <div ref={contentRef} className="space-y-8">
+        <AlertasGerenciais data={data} />
+        <ResumoExecutivo data={data} mesLabel={mesesDisponiveis.find(m2 => m2.value === mes)?.label || mes} />
+        <SecaoProducao prodMes={prodMes} cloneMap={cloneMap} evolucao={evolucao} />
+        <SecaoPerdas perdasMes={perdasMes} cloneMap={cloneMap} setorMap={setorMap} totalProd={totalProd} />
+        <SecaoEstoque estoquePorSetor={estoquePorSetor} estoquePorClone={estoquePorClone} estoqueTotal={estoqueTotal} />
+        <SecaoFluxo transfMes={transfMes} expMes={expMes} setorMap={setorMap} cloneMap={cloneMap} />
+        <SecaoExpedicao expMes={expMes} cloneMap={cloneMap} evolucao={evolucao} />
+        <SecaoEficiencia eficiencia={eficiencia} totalProd={totalProd} totalPerdas={totalPerdas} prodMesAnt={prodMesAnt} />
+        <SecaoAnaliseClone analiseClones={analiseClones} />
+        <SecaoPrevisoes mediaDiaria={mediaDiaria} estoquePorSetor={estoquePorSetor} />
+        <TabelaCompleta prodMes={prodMes} perdasMes={perdasMes} expMes={expMes} transfMes={transfMes} cloneMap={cloneMap} loteMap={loteMap} setorMap={setorMap} />
       </div>
-
-      {/* Evolução 6 meses */}
-      <Card className="mb-6">
-        <CardHeader><CardTitle className="text-base">Evolução — Últimos 6 Meses</CardTitle></CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={evolucao}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="prod" name="Produção" stroke={COLORS[0]} strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="perd" name="Perdas" stroke={COLORS[4]} strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="exped" name="Expedição" stroke={COLORS[2]} strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Produção por Clone */}
-        <Card>
-          <CardHeader><CardTitle className="text-base">Produção por Clone</CardTitle></CardHeader>
-          <CardContent>
-            {prodPorClone.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-8">Sem dados no mês</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={prodPorClone} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis type="number" tick={{ fontSize: 11 }} />
-                  <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={80} />
-                  <Tooltip />
-                  <Bar dataKey="value" name="Qtd" fill={COLORS[0]} radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Produção por Setor */}
-        <Card>
-          <CardHeader><CardTitle className="text-base">Produção por Setor</CardTitle></CardHeader>
-          <CardContent>
-            {prodPorSetor.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-8">Sem dados no mês</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={240}>
-                <PieChart>
-                  <Pie data={prodPorSetor} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                    {prodPorSetor.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Perdas por Clone */}
-      {perdasPorClone.length > 0 && (
-        <Card className="mb-6">
-          <CardHeader><CardTitle className="text-base">Perdas por Clone</CardTitle></CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={perdasPorClone} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis type="number" tick={{ fontSize: 11 }} />
-                <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={80} />
-                <Tooltip />
-                <Bar dataKey="value" name="Perdas" fill={COLORS[4]} radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Tabela detalhada de produção */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Registros de Produção — Detalhe</CardTitle></CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-muted-foreground text-xs uppercase">
-                  <th className="text-left py-2 pr-4">Data</th>
-                  <th className="text-left py-2 pr-4">Clone</th>
-                  <th className="text-left py-2 pr-4">Lote</th>
-                  <th className="text-left py-2 pr-4">Setor</th>
-                  <th className="text-right py-2">Quantidade</th>
-                </tr>
-              </thead>
-              <tbody>
-                {prodMes.length === 0 ? (
-                  <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">Nenhum registro no mês</td></tr>
-                ) : prodMes.map(p => (
-                  <tr key={p.id} className="border-b last:border-0 hover:bg-muted/30">
-                    <td className="py-2 pr-4">{p.data ? format(parseISO(p.data), 'dd/MM/yyyy') : '—'}</td>
-                    <td className="py-2 pr-4">{cloneMap[p.clone_id] || '—'}</td>
-                    <td className="py-2 pr-4">{loteMap[p.lote_id] || '—'}</td>
-                    <td className="py-2 pr-4">{setorMap[p.setor_id] || '—'}</td>
-                    <td className="py-2 text-right font-medium">{p.quantidade?.toLocaleString('pt-BR')}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
