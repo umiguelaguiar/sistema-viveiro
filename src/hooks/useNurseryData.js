@@ -52,7 +52,7 @@ export function useMovimentacoes() {
 export function usePerdas() {
   return useQuery({
     queryKey: ['perdas'],
-    queryFn: () => base44.entities.Perda.list('-data', 500),
+    queryFn: () => base44.entities.Perda.list('-data', 5000),
     initialData: [],
   });
 }
