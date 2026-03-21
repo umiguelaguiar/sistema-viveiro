@@ -10,7 +10,7 @@ function GaugeCard({ eficiencia }) {
 
   return (
     <div className={`flex flex-col items-center justify-center p-8 rounded-xl border-2 ${bg} ${border}`}>
-      <div className="relative w-36 h-36 mb-4">
+      <div className="relative w-48 h-48 mb-4">
         <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
           <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" strokeWidth="12" />
           <circle cx="50" cy="50" r="40" fill="none" stroke={cor} strokeWidth="12"
@@ -18,7 +18,7 @@ function GaugeCard({ eficiencia }) {
             strokeLinecap="round" />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-3xl font-bold" style={{ color: cor }}>{eficiencia.toFixed(1)}%</span>
+          <span className="text-4xl font-bold" style={{ color: cor }}>{eficiencia.toFixed(1)}%</span>
         </div>
       </div>
       <p className="text-base font-semibold">{label}</p>
