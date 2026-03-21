@@ -36,7 +36,7 @@ export function useSetores() {
 export function useProducoes() {
   return useQuery({
     queryKey: ['producoes'],
-    queryFn: () => base44.entities.Producao.list('-data', 500),
+    queryFn: () => base44.entities.Producao.list('-data', 5000),
     initialData: [],
   });
 }
