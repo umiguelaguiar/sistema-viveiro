@@ -166,7 +166,7 @@ export default function Previsao() {
         </div>
       </div>
       {Number(pegamento) < 100 && (
-        <div className="mb-4 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg text-sm text-amber-700 dark:text-amber-400">
+        <div className="mb-6 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg text-sm text-amber-700 dark:text-amber-400">
           ⚠️ Pegamento de <strong>{pegamento}%</strong> aplicado — previsões mostram mudas esperadas na expedição, descontando {100 - Number(pegamento)}% de perdas no processo.
         </div>
       )}
