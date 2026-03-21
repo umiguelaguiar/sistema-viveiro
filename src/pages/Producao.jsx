@@ -31,7 +31,7 @@ export default function Producao() {
       quantidade: Number(form.quantidade)
     });
     queryClient.invalidateQueries({ queryKey: ['producoes'] });
-    setForm({ lote_id: '', clone_id: '', quantidade: '', setor_id: '', data: new Date().toISOString().split('T')[0] });
+    setForm({ lote_id: '', clone_id: '', quantidade: '', setor_id: '', data: todayLocal() });
     setOpen(false);
   };
 
