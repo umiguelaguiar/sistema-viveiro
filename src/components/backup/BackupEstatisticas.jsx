@@ -9,7 +9,7 @@ export default function BackupEstatisticas({ backups = [] }) {
     if (backupsValidos.length === 0) {
       return {
         tempoMedio: 0,
-        tamanhomedio: 0,
+        tamanhoMedio: 0,
         backupsPorDia: [],
         distribuicaoTamanho: [],
       };
