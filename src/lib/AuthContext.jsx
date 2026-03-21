@@ -94,8 +94,8 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(true);
       const currentUser = await base44.auth.me();
       
-      // If user has no role, assign visitor role
-      if (!currentUser.role) {
+      // If user has no role or role is "user", assign visitor role
+      if (!currentUser.role || currentUser.role === 'user') {
         await base44.auth.updateMe({ role: 'visitante' });
         currentUser.role = 'visitante';
       }
