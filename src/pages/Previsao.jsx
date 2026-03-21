@@ -135,8 +135,8 @@ export default function Previsao() {
               <p className="text-xs text-muted-foreground">mudas / dia</p>
             </div>
           </div>
-          {meta && <div className={`mt-2 text-xs font-medium ${previsaoDiaria >= (Number(meta) / 365) ? 'text-green-600' : 'text-amber-600'}`}>
-            Meta diária: {Math.round(Number(meta) / 365).toLocaleString('pt-BR')} — {previsaoDiaria >= (Number(meta) / 365) ? '✅ Atingida' : '⚠️ Abaixo'}
+          {meta && <div className={`mt-2 text-xs font-medium ${previsaoDiaria >= (Number(meta) / 365 * taxaPegamento) ? 'text-green-600' : 'text-amber-600'}`}>
+            Meta diária: {Math.round(Number(meta) / 365 * taxaPegamento).toLocaleString('pt-BR')} — {previsaoDiaria >= (Number(meta) / 365 * taxaPegamento) ? '✅ Atingida' : '⚠️ Abaixo'}
           </div>}
         </Card>
 
