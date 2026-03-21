@@ -143,6 +143,7 @@ export default function Admin() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           {[
+            { role: ROLES.VISITANTE, desc: 'Sem acesso. Aguardando aprovação do administrador' },
             { role: ROLES.USUARIO, desc: 'Dashboard, Estoque, Relatório, Porcentagem, Previsão, Insumos' },
             { role: ROLES.SUPERVISOR, desc: 'Todas as abas operacionais (exceto área administrativa)' },
             { role: ROLES.ADMIN, desc: 'Acesso total, incluindo esta área administrativa' },
