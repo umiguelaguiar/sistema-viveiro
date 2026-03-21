@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
-  { label: 'Porcentagem', icon: TreePine, path: '/porcentagem' },
+  { label: 'Porcentagem', icon: LayoutDashboard, path: '/porcentagem' },
   { label: 'Espécies', icon: TreePine, path: '/especies' },
   { label: 'Clones', icon: GitBranch, path: '/clones' },
   { label: 'Lotes', icon: Layers, path: '/lotes' },

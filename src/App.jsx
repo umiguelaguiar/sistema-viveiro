@@ -8,6 +8,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 import AppLayout from '@/components/layout/AppLayout';
 import Dashboard from '@/pages/Dashboard';
+import Porcentagem from '@/pages/Porcentagem';
 import Especies from '@/pages/Especies';
 import Clones from '@/pages/Clones';
 import Lotes from '@/pages/Lotes';
@@ -42,6 +43,7 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/porcentagem" element={<Porcentagem />} />
         <Route path="/especies" element={<Especies />} />
         <Route path="/clones" element={<Clones />} />
         <Route path="/lotes" element={<Lotes />} />
