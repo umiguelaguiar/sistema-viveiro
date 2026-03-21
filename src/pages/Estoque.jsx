@@ -83,7 +83,9 @@ export default function Estoque() {
 
   const totalFiltrado = filtradas.reduce((s, l) => s + l.qty, 0);
 
-
+  return (
+    <div>
+      <PageHeader title="Estoque" description="Rastreabilidade completa das mudas por clone, setor e lote" />
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-2 mb-4">
@@ -184,6 +186,6 @@ export default function Estoque() {
           </table>
         </div>
       </Card>
-    </div>
-  );
-}
+      </div>
+      );
+      }
