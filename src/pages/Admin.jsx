@@ -25,6 +25,15 @@ function UserRow({ u, currentUserId }) {
     onError: () => toast({ title: 'Erro ao atualizar cargo', variant: 'destructive' }),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.User.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({ title: 'Usuário removido com sucesso!' });
+    },
+    onError: () => toast({ title: 'Erro ao remover usuário', variant: 'destructive' }),
+  });
+
   const isSelf = u.id === currentUserId;
   const initials = (u.full_name || u.email || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
@@ -63,6 +72,19 @@ function UserRow({ u, currentUserId }) {
           className="min-h-[44px]"
         >
           {updateMutation.isPending ? '...' : 'Salvar'}
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={isSelf || deleteMutation.isPending}
+          onClick={() => {
+            if (confirm(`Tem certeza que deseja remover ${u.full_name || u.email}?`)) {
+              deleteMutation.mutate(u.id);
+            }
+          }}
+          className="min-h-[44px] text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-900/20"
+        >
+          {deleteMutation.isPending ? '...' : <Trash2 className="w-4 h-4" />}
         </Button>
       </div>
     </div>
