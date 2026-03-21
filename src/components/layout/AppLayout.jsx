@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import Sidebar from './Sidebar';
+import BottomTabBar from './BottomTabBar';
+import MoreMenuDrawer from './MoreMenuDrawer';
 import { cn } from '@/lib/utils';
-import { Menu, X, Sun, Moon } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 
 function useTheme() {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
