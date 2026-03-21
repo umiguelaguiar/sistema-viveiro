@@ -34,10 +34,6 @@ export default function Perdas() {
 
   const handleSave = async () => {
     const qty = Number(form.quantidade);
-    if (qty > disponivel) {
-      toast.error(`Estoque insuficiente. Disponível: ${disponivel}`);
-      return;
-    }
     await base44.entities.Perda.create({ ...form, quantidade: qty });
     queryClient.invalidateQueries({ queryKey: ['perdas'] });
     setForm({ lote_id: '', clone_id: '', setor_id: '', quantidade: '', motivo: '', data: new Date().toISOString().split('T')[0] });
