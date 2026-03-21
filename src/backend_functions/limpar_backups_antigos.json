@@ -1,9 +1,0 @@
-{
-  "name": "limpar_backups_antigos",
-  "description": "Executa política de retenção automática de backups",
-  "runtime": "deno",
-  "environment_variables": [],
-  "secrets": [],
-  "timeout": 120,
-  "memory": 256
-}

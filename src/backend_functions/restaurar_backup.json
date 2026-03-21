@@ -1,9 +1,0 @@
-{
-  "name": "restaurar_backup",
-  "description": "Restaura sistema a partir de um backup com validação de integridade",
-  "runtime": "deno",
-  "environment_variables": [],
-  "secrets": ["backup_encryption_key"],
-  "timeout": 300,
-  "memory": 512
-}
