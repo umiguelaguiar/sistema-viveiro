@@ -131,10 +131,12 @@ export function getMortalityRate(producaoTotal, perdasTotal) {
 }
 
 // Determina de qual setor a expedição deve sair
-// Prioridade: Rustificação > Sombreamento > Casa de Vegetação
+// Prioridade: Rustificação > Casa de Sombra > Casa de Vegetação
+// Se nenhum tiver estoque suficiente individualmente, usa qualquer um que tenha estoque
 export function getExpedicaoSetor(stock, setores, cloneId, loteId, quantidade) {
   const prioridade = ['Rustificação', 'Casa de Sombra', 'Casa de Vegetação'];
   
+  // Primeiro tenta pela ordem de prioridade
   for (const nomeSetor of prioridade) {
     const setor = setores.find(s => s.nome === nomeSetor);
     if (!setor) continue;
@@ -143,5 +145,14 @@ export function getExpedicaoSetor(stock, setores, cloneId, loteId, quantidade) {
       return setor;
     }
   }
+
+  // Fallback: qualquer setor com estoque suficiente
+  for (const setor of setores) {
+    const disponivel = getStockForSetorCloneLote(stock, setor.id, cloneId, loteId);
+    if (disponivel >= quantidade) {
+      return setor;
+    }
+  }
+
   return null;
 }
