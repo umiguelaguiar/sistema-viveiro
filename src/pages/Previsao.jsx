@@ -53,9 +53,9 @@ export default function Previsao() {
   const taxaPegamento = Math.min(100, Math.max(0, Number(pegamento) || 100)) / 100;
 
   const previsaoDiaria = Math.round(mediaDiaria * taxaPegamento);
-  const previsaoSemanal = Math.round(mediaDiaria * 7 * taxaPegamento);
-  const previsaoMensal = Math.round(mediaDiaria * 30 * taxaPegamento);
-  const previsaoAnual = Math.round(mediaDiaria * 365 * taxaPegamento);
+  const previsaoSemanal = Math.round(mediaDiaria * 5 * taxaPegamento); // 5 dias úteis
+  const previsaoMensal = Math.round(mediaDiaria * 22 * taxaPegamento); // ~22 dias úteis/mês
+  const previsaoAnual = Math.round(mediaDiaria * 252 * taxaPegamento); // 252 dias úteis/ano
 
   // Histórico mensal (12 meses)
   const historicoMensal = useMemo(() => {
