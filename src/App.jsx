@@ -30,6 +30,22 @@ import Backup from '@/pages/Backup';
 import SolicitarAcesso from '@/pages/SolicitarAcesso';
 import AguardandoAprovacao from '@/pages/AguardandoAprovacao';
 
+const AguardandoPendente = ({ user }) => {
+  const { data: solicitacoes = [], isLoading } = useQuery({
+    queryKey: ['minha-solicitacao', user?.email],
+    queryFn: () => base44.entities.SolicitacaoAcesso.filter({ email: user.email }),
+    enabled: !!user?.email,
+  });
+
+  if (isLoading) return (
+    <div className="fixed inset-0 flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+    </div>
+  );
+
+  return <AguardandoAprovacao solicitacaoExistente={solicitacoes.length > 0 ? solicitacoes[0] : null} />;
+};
+
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
