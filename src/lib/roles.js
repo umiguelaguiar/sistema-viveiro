@@ -1,6 +1,7 @@
 // Role definitions and access control
 
 export const ROLES = {
+  VISITANTE: 'visitante',
   USUARIO: 'usuario',
   SUPERVISOR: 'supervisor',
   ADMIN: 'admin',
