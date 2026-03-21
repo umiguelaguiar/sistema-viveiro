@@ -69,6 +69,7 @@ const AuthenticatedApp = () => {
         <Route path="/previsao" element={<RouteGuard><Previsao /></RouteGuard>} />
         <Route path="/backup" element={<RouteGuard><Backup /></RouteGuard>} />
       </Route>
+      <Route path="/solicitar-acesso" element={<SolicitarAcesso />} />
       <Route path="/Dashboard" element={<Navigate to="/" replace />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
