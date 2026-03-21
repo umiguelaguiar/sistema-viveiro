@@ -26,21 +26,52 @@ export default function Dashboard() {
   const { data: lotes } = useLotes();
 
   const [mesFiltro, setMesFiltro] = useState('todos');
+  const [cloneFiltro, setCloneFiltro] = useState('todos');
+  const [loteFiltro, setLoteFiltro] = useState('todos');
 
   const allItems = useMemo(() => [...producoes, ...perdas, ...movimentacoes], [producoes, perdas, movimentacoes]);
   const monthOptions = useMemo(() => getMonthOptions(allItems), [allItems]);
 
-  const filterByMonth = (items) => {
-    if (mesFiltro === 'todos') return items;
-    return items.filter(i => i.data && i.data.startsWith(mesFiltro));
+  // Lotes filtrados pelo clone selecionado
+  const lotesFiltradosPorClone = useMemo(() =>
+    cloneFiltro === 'todos' ? lotes : lotes.filter(l => l.clone_id === cloneFiltro),
+  [lotes, cloneFiltro]);
+
+  const applyFilters = (items) => {
+    let filtered = items;
+    if (mesFiltro !== 'todos') filtered = filtered.filter(i => i.data && i.data.startsWith(mesFiltro));
+    if (cloneFiltro !== 'todos') filtered = filtered.filter(i => i.clone_id === cloneFiltro);
+    if (loteFiltro !== 'todos') filtered = filtered.filter(i => i.lote_id === loteFiltro);
+    return filtered;
   };
 
-  const producoesFiltradas = useMemo(() => filterByMonth(producoes), [producoes, mesFiltro]);
-  const perdasFiltradas = useMemo(() => filterByMonth(perdas), [perdas, mesFiltro]);
-  const movimentacoesFiltradas = useMemo(() => filterByMonth(movimentacoes), [movimentacoes, mesFiltro]);
+  const producoesFiltradas = useMemo(() => applyFilters(producoes), [producoes, mesFiltro, cloneFiltro, loteFiltro]);
+  const perdasFiltradas = useMemo(() => applyFilters(perdas), [perdas, mesFiltro, cloneFiltro, loteFiltro]);
+  const movimentacoesFiltradas = useMemo(() => applyFilters(movimentacoes), [movimentacoes, mesFiltro, cloneFiltro, loteFiltro]);
 
-  // Stock sempre calculado sobre o total (não filtrado por mês), pois é acumulado
-  const stock = useMemo(() => calculateStock(producoes, movimentacoes, perdas), [producoes, movimentacoes, perdas]);
+  // Stock calculado com filtros de clone/lote mas acumulado (sem filtro de mês)
+  const producoesPStock = useMemo(() => {
+    let f = producoes;
+    if (cloneFiltro !== 'todos') f = f.filter(i => i.clone_id === cloneFiltro);
+    if (loteFiltro !== 'todos') f = f.filter(i => i.lote_id === loteFiltro);
+    return f;
+  }, [producoes, cloneFiltro, loteFiltro]);
+
+  const movimentacoesPStock = useMemo(() => {
+    let f = movimentacoes;
+    if (cloneFiltro !== 'todos') f = f.filter(i => i.clone_id === cloneFiltro);
+    if (loteFiltro !== 'todos') f = f.filter(i => i.lote_id === loteFiltro);
+    return f;
+  }, [movimentacoes, cloneFiltro, loteFiltro]);
+
+  const perdasPStock = useMemo(() => {
+    let f = perdas;
+    if (cloneFiltro !== 'todos') f = f.filter(i => i.clone_id === cloneFiltro);
+    if (loteFiltro !== 'todos') f = f.filter(i => i.lote_id === loteFiltro);
+    return f;
+  }, [perdas, cloneFiltro, loteFiltro]);
+
+  const stock = useMemo(() => calculateStock(producoesPStock, movimentacoesPStock, perdasPStock), [producoesPStock, movimentacoesPStock, perdasPStock]);
   const stockBySetor = useMemo(() => getStockBySetor(stock, setores), [stock, setores]);
   const stockByClone = useMemo(() => getStockByClone(stock, clones), [stock, clones]);
 
@@ -54,11 +85,13 @@ export default function Dashboard() {
 
   const setorChartData = stockBySetor.filter(s => s.total > 0).map(s => ({ name: s.setor.nome, value: s.total }));
 
-  const mortalidadeData = clones.map(c => {
-    const prod = producaoByClone[c.id] || 0;
-    const perd = perdasByClone[c.id] || 0;
-    return { name: c.codigo_clone, taxa: parseFloat(getMortalityRate(prod, perd).toFixed(1)), perdas: perd, producao: prod };
-  }).filter(d => d.producao > 0).sort((a, b) => b.taxa - a.taxa);
+  const mortalidadeData = clones
+    .filter(c => cloneFiltro === 'todos' || c.id === cloneFiltro)
+    .map(c => {
+      const prod = producaoByClone[c.id] || 0;
+      const perd = perdasByClone[c.id] || 0;
+      return { name: c.codigo_clone, taxa: parseFloat(getMortalityRate(prod, perd).toFixed(1)), perdas: perd, producao: prod };
+    }).filter(d => d.producao > 0).sort((a, b) => b.taxa - a.taxa);
 
   const estoqueCloneData = stockByClone
     .filter(s => s.total > 0)
