@@ -152,16 +152,22 @@ export default function Relatorio() {
         title="Relatório Mensal"
         description="Visão consolidada das operações do viveiro"
         action={
-          <Select value={mes} onValueChange={setMes}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {mesesDisponiveis.map(m => (
-                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Select value={mes} onValueChange={setMes}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {mesesDisponiveis.map(m => (
+                  <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={exportarCSV} className="gap-2">
+              <Download className="w-4 h-4" />
+              Exportar para Power BI
+            </Button>
+          </div>
         }
       />
 
