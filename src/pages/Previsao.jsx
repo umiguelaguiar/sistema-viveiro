@@ -25,11 +25,11 @@ export default function Previsao() {
   const [meta, setMeta] = useState(() => localStorage.getItem('previsao_meta') || '');
   const [pegamento, setPegamento] = useState(() => localStorage.getItem('previsao_pegamento') || '100');
 
-  React.useEffect(() => {
+  useEffect(() => {
     localStorage.setItem('previsao_meta', meta);
   }, [meta]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     localStorage.setItem('previsao_pegamento', pegamento);
   }, [pegamento]);
 
