@@ -35,7 +35,11 @@ export default function Producao() {
   };
 
   const handleDelete = async (id) => {
-    await base44.entities.Producao.delete(id);
+    try {
+      await base44.entities.Producao.delete(id);
+    } catch (e) {
+      if (!e.message?.includes('not found')) throw e;
+    }
     queryClient.invalidateQueries({ queryKey: ['producoes'] });
   };
 
