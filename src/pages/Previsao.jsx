@@ -198,7 +198,7 @@ export default function Previsao() {
             {meta && <ReferenceLine y={Number(meta)} stroke="hsl(0,72%,51%)" strokeDasharray="4 2" label={{ value: 'Meta', position: 'right', fontSize: 11 }} />}
           </LineChart>
         </ResponsiveContainer>
-        <p className="text-xs text-muted-foreground mt-2">* Previsão baseada na média diária dos últimos 30 dias</p>
+        <p className="text-xs text-muted-foreground mt-2">* Previsão baseada na média diária dos últimos 30 dias (apenas seg-sex)</p>
       </Card>
 
       {/* Top clones */}
