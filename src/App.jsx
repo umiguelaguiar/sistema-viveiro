@@ -48,7 +48,7 @@ const AguardandoPendente = ({ user }) => {
 };
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, isAuthenticated, user } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
