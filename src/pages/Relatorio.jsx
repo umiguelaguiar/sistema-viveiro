@@ -75,16 +75,15 @@ export default function Relatorio() {
   }, [stock]);
 
   // Estoque por setor
-   const estoquePorSetor = useMemo(() => {
-     const map = {};
-     setores.forEach(s => { map[s.id] = { nome: s.nome, total: 0 }; });
-     Object.entries(stock).forEach(([setorId, byClone]) => {
-       const total = Object.values(byClone).reduce((s, byLote) => s + Object.values(byLote).reduce((a, q) => a + Math.max(0, q), 0), 0);
-       if (map[setorId]) map[setorId].total = total;
-       else map[setorId] = { nome: setorMap[setorId] || setorId, total };
-     });
-     return Object.values(map);
-   }, [stock, setores, setorMap]);
+  const estoquePorSetor = useMemo(() => {
+    const map = {};
+    Object.entries(stock).forEach(([setorId, byClone]) => {
+      const total = Object.values(byClone).reduce((s, byLote) => s + Object.values(byLote).reduce((a, q) => a + Math.max(0, q), 0), 0);
+      const nomSetor = setores.find(s => s.id === setorId)?.nome || setorMap[setorId] || setorId;
+      map[setorId] = { nome: nomSetor, total };
+    });
+    return Object.values(map);
+  }, [stock, setores, setorMap]);
 
   // Estoque por clone
   const estoquePorClone = useMemo(() => {
