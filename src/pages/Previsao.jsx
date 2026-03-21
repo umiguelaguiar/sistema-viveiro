@@ -22,8 +22,16 @@ export default function Previsao() {
 
   const [cloneFiltro, setCloneFiltro] = useState('todos');
   const [loteFiltro, setLoteFiltro] = useState('todos');
-  const [meta, setMeta] = useState('');
-  const [pegamento, setPegamento] = useState('100');
+  const [meta, setMeta] = useState(() => localStorage.getItem('previsao_meta') || '');
+  const [pegamento, setPegamento] = useState(() => localStorage.getItem('previsao_pegamento') || '100');
+
+  React.useEffect(() => {
+    localStorage.setItem('previsao_meta', meta);
+  }, [meta]);
+
+  React.useEffect(() => {
+    localStorage.setItem('previsao_pegamento', pegamento);
+  }, [pegamento]);
 
   const prodFiltradas = useMemo(() => {
     let f = producoes;
