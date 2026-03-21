@@ -95,7 +95,17 @@ export default function Previsao() {
           <Label className="text-sm whitespace-nowrap">Meta mensal:</Label>
           <Input type="number" placeholder="Ex: 50000" className="w-36" value={meta} onChange={e => setMeta(e.target.value)} />
         </div>
+        <div className="flex items-center gap-2">
+          <Label className="text-sm whitespace-nowrap">% Pegamento:</Label>
+          <Input type="number" min="1" max="100" placeholder="Ex: 85" className="w-24" value={pegamento} onChange={e => setPegamento(e.target.value)} />
+          <span className="text-xs text-muted-foreground">% das mudas que chegam vivas à expedição</span>
+        </div>
       </div>
+      {Number(pegamento) < 100 && (
+        <div className="mb-4 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg text-sm text-amber-700 dark:text-amber-400">
+          ⚠️ Pegamento de <strong>{pegamento}%</strong> aplicado — previsões mostram mudas esperadas na expedição, descontando {100 - Number(pegamento)}% de perdas no processo.
+        </div>
+      )}
 
       {/* KPIs de previsão */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
