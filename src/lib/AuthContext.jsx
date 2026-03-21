@@ -92,12 +92,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Now check if the user is authenticated
       setIsLoadingAuth(true);
-      let currentUser = await base44.auth.me();
-      // Se o usuário não tem role, atribui automaticamente 'usuario'
-      if (!currentUser.role) {
-        await base44.auth.updateMe({ role: ROLES.USUARIO });
-        currentUser = await base44.auth.me();
-      }
+      const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
