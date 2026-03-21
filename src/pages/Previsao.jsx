@@ -25,6 +25,7 @@ export default function Previsao() {
   const [meta, setMeta] = useState(() => localStorage.getItem('previsao_meta') || '');
   const [pegamento, setPegamento] = useState(() => localStorage.getItem('previsao_pegamento') || '100');
   const [periodo, setPeriodo] = useState(() => localStorage.getItem('previsao_periodo') || '30');
+  const [periodoFrente, setPerioodoFrente] = useState(() => localStorage.getItem('previsao_periodo_frente') || '30');
 
   useEffect(() => {
     localStorage.setItem('previsao_meta', meta);
