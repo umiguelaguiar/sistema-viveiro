@@ -1,9 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { useClones, useProducoes, usePerdas, useLotes } from '@/hooks/useNurseryData';
 import PageHeader from '@/components/shared/PageHeader';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 
 function getMonthOptions(items) {
@@ -14,14 +13,27 @@ function getMonthOptions(items) {
 
 function calcEnraizamento(producao, perdas) {
   if (!producao || producao === 0) return null;
-  const enraizadas = producao - perdas;
-  return ((enraizadas / producao) * 100).toFixed(1);
+  return (((producao - perdas) / producao) * 100).toFixed(1);
 }
 
-function EnraizamentoBadge({ pct }) {
+function calcPerda(producao, perdas) {
+  if (!producao || producao === 0) return null;
+  return ((perdas / producao) * 100).toFixed(1);
+}
+
+function calcEficiencia(producao, perdas) {
+  return calcEnraizamento(producao, perdas);
+}
+
+function RateBadge({ pct, inverso = false }) {
   if (pct === null) return <span className="text-muted-foreground text-xs">—</span>;
   const v = parseFloat(pct);
-  const color = v >= 80 ? 'bg-green-100 text-green-700' : v >= 60 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700';
+  let color;
+  if (inverso) {
+    color = v <= 5 ? 'bg-green-100 text-green-700' : v <= 10 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700';
+  } else {
+    color = v >= 80 ? 'bg-green-100 text-green-700' : v >= 60 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700';
+  }
   return <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${color}`}>{pct}%</span>;
 }
 
@@ -32,32 +44,19 @@ export default function Porcentagem() {
   const { data: lotes } = useLotes();
 
   const [mesFiltro, setMesFiltro] = useState('todos');
-  const [viewMode, setViewMode] = useState('clone'); // 'clone' | 'lote'
+  const [viewMode, setViewMode] = useState('clone');
 
   const allItems = useMemo(() => [...producoes, ...perdas], [producoes, perdas]);
   const monthOptions = useMemo(() => getMonthOptions(allItems), [allItems]);
 
-  const filterByMonth = (items) => {
-    if (mesFiltro === 'todos') return items;
-    return items.filter(i => i.data && i.data.startsWith(mesFiltro));
-  };
+  const filterByMonth = (items) => mesFiltro === 'todos' ? items : items.filter(i => i.data && i.data.startsWith(mesFiltro));
 
   const producoesFiltradas = useMemo(() => filterByMonth(producoes), [producoes, mesFiltro]);
   const perdasFiltradas = useMemo(() => filterByMonth(perdas), [perdas, mesFiltro]);
 
-  const cloneMap = useMemo(() => {
-    const m = {};
-    clones.forEach(c => { m[c.id] = c; });
-    return m;
-  }, [clones]);
+  const cloneMap = useMemo(() => Object.fromEntries(clones.map(c => [c.id, c])), [clones]);
+  const loteMap = useMemo(() => Object.fromEntries(lotes.map(l => [l.id, l])), [lotes]);
 
-  const loteMap = useMemo(() => {
-    const m = {};
-    lotes.forEach(l => { m[l.id] = l; });
-    return m;
-  }, [lotes]);
-
-  // Por clone
   const dadosPorClone = useMemo(() => {
     const acc = {};
     producoesFiltradas.forEach(p => {
@@ -68,134 +67,130 @@ export default function Porcentagem() {
       if (!acc[p.clone_id]) acc[p.clone_id] = { producao: 0, perdas: 0 };
       acc[p.clone_id].perdas += (p.quantidade || 0);
     });
-    return Object.entries(acc)
-      .filter(([, v]) => v.producao > 0)
-      .map(([cloneId, v]) => ({
-        clone: cloneMap[cloneId],
-        producao: v.producao,
-        perdas: v.perdas,
-        enraizadas: v.producao - v.perdas,
-        pct: calcEnraizamento(v.producao, v.perdas),
-      }))
-      .sort((a, b) => parseFloat(b.pct) - parseFloat(a.pct));
+    return Object.entries(acc).filter(([, v]) => v.producao > 0).map(([cloneId, v]) => ({
+      clone: cloneMap[cloneId],
+      producao: v.producao, perdas: v.perdas,
+      enraizadas: v.producao - v.perdas,
+      pctEnraizamento: calcEnraizamento(v.producao, v.perdas),
+      pctPerdas: calcPerda(v.producao, v.perdas),
+      pctEficiencia: calcEficiencia(v.producao, v.perdas),
+    })).sort((a, b) => parseFloat(b.pctEnraizamento) - parseFloat(a.pctEnraizamento));
   }, [producoesFiltradas, perdasFiltradas, cloneMap]);
 
-  // Por lote
   const dadosPorLote = useMemo(() => {
     const acc = {};
     producoesFiltradas.forEach(p => {
-      const key = p.lote_id;
-      if (!acc[key]) acc[key] = { clone_id: p.clone_id, producao: 0, perdas: 0 };
-      acc[key].producao += (p.quantidade || 0);
+      if (!acc[p.lote_id]) acc[p.lote_id] = { producao: 0, perdas: 0 };
+      acc[p.lote_id].producao += (p.quantidade || 0);
     });
     perdasFiltradas.forEach(p => {
-      const key = p.lote_id;
-      if (!acc[key]) acc[key] = { clone_id: p.clone_id, producao: 0, perdas: 0 };
-      acc[key].perdas += (p.quantidade || 0);
+      if (!acc[p.lote_id]) acc[p.lote_id] = { producao: 0, perdas: 0 };
+      acc[p.lote_id].perdas += (p.quantidade || 0);
     });
-    return Object.entries(acc)
-      .filter(([, v]) => v.producao > 0)
-      .map(([loteId, v]) => ({
-        lote: loteMap[loteId],
-        producao: v.producao,
-        perdas: v.perdas,
-        enraizadas: v.producao - v.perdas,
-        pct: calcEnraizamento(v.producao, v.perdas),
-      }))
-      .sort((a, b) => parseFloat(b.pct) - parseFloat(a.pct));
+    return Object.entries(acc).filter(([, v]) => v.producao > 0).map(([loteId, v]) => ({
+      lote: loteMap[loteId],
+      producao: v.producao, perdas: v.perdas,
+      enraizadas: v.producao - v.perdas,
+      pctEnraizamento: calcEnraizamento(v.producao, v.perdas),
+      pctPerdas: calcPerda(v.producao, v.perdas),
+      pctEficiencia: calcEficiencia(v.producao, v.perdas),
+    })).sort((a, b) => parseFloat(b.pctEnraizamento) - parseFloat(a.pctEnraizamento));
   }, [producoesFiltradas, perdasFiltradas, loteMap]);
+
+  // Totais globais
+  const totalProd = producoesFiltradas.reduce((s, p) => s + (p.quantidade || 0), 0);
+  const totalPerd = perdasFiltradas.reduce((s, p) => s + (p.quantidade || 0), 0);
+  const globalEnraizamento = calcEnraizamento(totalProd, totalPerd);
+  const globalPerdas = calcPerda(totalProd, totalPerd);
+  const globalEficiencia = calcEficiencia(totalProd, totalPerd);
+
+  const dados = viewMode === 'clone' ? dadosPorClone : dadosPorLote;
 
   return (
     <div>
-      <PageHeader title="Porcentagem de Enraizamento" description="Taxa de enraizamento (%) por clone e lote" />
+      <PageHeader title="Análise de Desempenho" description="Enraizamento, perdas e eficiência por clone e lote" />
 
+      {/* KPIs globais */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <Card className="p-4">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Enraizamento Global</p>
+          <p className="text-3xl font-bold text-primary">{globalEnraizamento ?? '—'}%</p>
+          <p className="text-xs text-muted-foreground mt-1">{(totalProd - totalPerd).toLocaleString('pt-BR')} enraizadas de {totalProd.toLocaleString('pt-BR')}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Taxa de Perdas</p>
+          <p className={`text-3xl font-bold ${parseFloat(globalPerdas) > 10 ? 'text-destructive' : parseFloat(globalPerdas) > 5 ? 'text-amber-600' : 'text-green-600'}`}>
+            {globalPerdas ?? '—'}%
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">{totalPerd.toLocaleString('pt-BR')} mudas perdidas</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Eficiência</p>
+          <p className={`text-3xl font-bold ${parseFloat(globalEficiencia) >= 90 ? 'text-green-600' : parseFloat(globalEficiencia) >= 80 ? 'text-amber-600' : 'text-destructive'}`}>
+            {globalEficiencia ?? '—'}%
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">(Produção - Perdas) / Produção</p>
+        </Card>
+      </div>
+
+      {/* Filtros */}
       <div className="flex flex-wrap gap-3 mb-6">
         <Select value={mesFiltro} onValueChange={setMesFiltro}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrar por mês" />
-          </SelectTrigger>
+          <SelectTrigger className="w-48"><SelectValue placeholder="Filtrar por mês" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos os meses</SelectItem>
             {monthOptions.map(m => (
-              <SelectItem key={m} value={m}>
-                {format(new Date(m + '-01'), 'MMMM yyyy').replace(/^\w/, c => c.toUpperCase())}
-              </SelectItem>
+              <SelectItem key={m} value={m}>{format(new Date(m + '-01'), 'MMMM yyyy').replace(/^\w/, c => c.toUpperCase())}</SelectItem>
             ))}
           </SelectContent>
         </Select>
 
         <div className="flex rounded-lg border overflow-hidden">
-          <button
-            onClick={() => setViewMode('clone')}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${viewMode === 'clone' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
-          >
+          <button onClick={() => setViewMode('clone')}
+            className={`px-4 py-2 text-sm font-medium transition-colors ${viewMode === 'clone' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}>
             Por Clone
           </button>
-          <button
-            onClick={() => setViewMode('lote')}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${viewMode === 'lote' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}
-          >
+          <button onClick={() => setViewMode('lote')}
+            className={`px-4 py-2 text-sm font-medium transition-colors ${viewMode === 'lote' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}>
             Por Lote
           </button>
         </div>
       </div>
 
-      {viewMode === 'clone' ? (
-        <Card className="overflow-hidden">
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-muted/50">
-                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Clone</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {viewMode === 'clone' ? 'Clone' : 'Lote'}
+                </th>
                 <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Produção</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Perdas</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Enraizadas</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Enraizamento %</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Enraizamento %</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Taxa de Perdas</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Eficiência</th>
               </tr>
             </thead>
             <tbody>
-              {dadosPorClone.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-12 text-muted-foreground">Sem dados para o período selecionado</td></tr>
-              ) : dadosPorClone.map((row, i) => (
+              {dados.length === 0 ? (
+                <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">Sem dados para o período selecionado</td></tr>
+              ) : dados.map((row, i) => (
                 <tr key={i} className="border-t hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-medium">{row.clone?.codigo_clone || '—'}</td>
+                  <td className="px-4 py-3 font-medium">{viewMode === 'clone' ? (row.clone?.codigo_clone || '—') : (row.lote?.codigo || '—')}</td>
                   <td className="px-4 py-3 text-right">{row.producao.toLocaleString('pt-BR')}</td>
                   <td className="px-4 py-3 text-right text-destructive">{row.perdas.toLocaleString('pt-BR')}</td>
                   <td className="px-4 py-3 text-right">{row.enraizadas.toLocaleString('pt-BR')}</td>
-                  <td className="px-4 py-3 text-right"><EnraizamentoBadge pct={row.pct} /></td>
+                  <td className="px-4 py-3 text-center"><RateBadge pct={row.pctEnraizamento} /></td>
+                  <td className="px-4 py-3 text-center"><RateBadge pct={row.pctPerdas} inverso /></td>
+                  <td className="px-4 py-3 text-center"><RateBadge pct={row.pctEficiencia} /></td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </Card>
-      ) : (
-        <Card className="overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-muted/50">
-                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lote</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Produção</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Perdas</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Enraizadas</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Enraizamento %</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dadosPorLote.map((row, i) => (
-                <tr key={i} className="border-t hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-medium">{row.lote?.codigo || '—'}</td>
-                  <td className="px-4 py-3 text-right">{row.producao.toLocaleString('pt-BR')}</td>
-                  <td className="px-4 py-3 text-right text-destructive">{row.perdas.toLocaleString('pt-BR')}</td>
-                  <td className="px-4 py-3 text-right">{row.enraizadas.toLocaleString('pt-BR')}</td>
-                  <td className="px-4 py-3 text-right"><EnraizamentoBadge pct={row.pct} /></td>
-                </tr>
-              ))}
-              {dadosPorLote.length === 0 && (
-                <tr><td colSpan={5} className="text-center py-12 text-muted-foreground">Sem dados para o período selecionado</td></tr>
-              )}
-            </tbody>
-          </table>
-        </Card>
-      )}
+        </div>
+      </Card>
     </div>
   );
 }
