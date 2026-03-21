@@ -180,9 +180,7 @@ export default function Porcentagem() {
               </tr>
             </thead>
             <tbody>
-              {dadosPorLote.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">Sem dados para o período selecionado</td></tr>
-              ) : dadosPorLote.map((row, i) => (
+              {dadosPorLote.map((row, i) => (
                 <tr key={i} className="border-t hover:bg-muted/30 transition-colors">
                   <td className="px-4 py-3 font-medium">{row.lote?.codigo || '—'}</td>
                   <td className="px-4 py-3 text-right">{row.producao.toLocaleString('pt-BR')}</td>
