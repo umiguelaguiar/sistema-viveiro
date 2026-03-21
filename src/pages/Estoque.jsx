@@ -83,33 +83,33 @@ export default function Estoque() {
 
   const totalFiltrado = filtradas.reduce((s, l) => s + l.qty, 0);
 
-  // Totais por setor (filtrado)
-  const totalPorSetor = useMemo(() => {
-    const map = {};
-    filtradas.forEach(l => {
-      const nome = l.setor?.nome || 'Desconhecido';
-      map[nome] = (map[nome] || 0) + l.qty;
-    });
-    return Object.entries(map).map(([nome, total]) => ({ nome, total }));
-  }, [filtradas]);
+  // Totais por setor (não filtrado, para resumo geral)
+   const totalPorSetorGeral = useMemo(() => {
+     const map = {};
+     linhas.forEach(l => {
+       const setorId = l.setorId;
+       map[setorId] = (map[setorId] || 0) + l.qty;
+     });
+     return map;
+   }, [linhas]);
 
-  return (
-    <div>
-      <PageHeader title="Estoque" description="Rastreabilidade completa das mudas por clone, setor e lote" />
+   return (
+     <div>
+       <PageHeader title="Estoque" description="Rastreabilidade completa das mudas por clone, setor e lote" />
 
-      {/* Resumo por setor */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-        {setores.map(s => {
-          const linha = totalPorSetor.find(t => t.nome === s.nome);
-          return (
-            <Card key={s.id} className="p-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{s.nome}</p>
-              <p className="text-3xl font-bold text-foreground mt-1">{(linha?.total || 0).toLocaleString('pt-BR')}</p>
-              <p className="text-xs text-muted-foreground">mudas em estoque</p>
-            </Card>
-          );
-        })}
-      </div>
+       {/* Resumo por setor */}
+       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+         {setores.map(s => {
+           const total = totalPorSetorGeral[s.id] || 0;
+           return (
+             <Card key={s.id} className="p-4">
+               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{s.nome}</p>
+               <p className="text-3xl font-bold text-foreground mt-1">{total.toLocaleString('pt-BR')}</p>
+               <p className="text-xs text-muted-foreground">mudas em estoque</p>
+             </Card>
+           );
+         })}
+       </div>
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-2 mb-4">
