@@ -27,6 +27,7 @@ import Estoque from '@/pages/Estoque';
 import Previsao from '@/pages/Previsao';
 import Backup from '@/pages/Backup';
 import SolicitarAcesso from '@/pages/SolicitarAcesso';
+import AguardandoAprovacao from '@/pages/AguardandoAprovacao';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
