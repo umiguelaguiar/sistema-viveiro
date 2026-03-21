@@ -14,15 +14,15 @@ export default function BackupActions({ onBackupCompleto }) {
 
     setCarregando(true);
     try {
-      const resultado = await base44.backend.gerar_backup_completo({
+      const response = await base44.functions.invoke('gerar_backup_completo', {
         tipo_backup: tipoBackup,
       });
 
-      if (resultado.sucesso) {
+      if (response.data?.sucesso) {
         toast.success('Backup gerado com sucesso!');
         onBackupCompleto?.();
       } else {
-        toast.error(resultado.erro || 'Erro ao gerar backup');
+        toast.error(response.data?.erro || 'Erro ao gerar backup');
       }
     } catch (erro) {
       toast.error('Erro ao gerar backup: ' + erro.message);
