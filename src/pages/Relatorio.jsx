@@ -78,12 +78,13 @@ export default function Relatorio() {
   const estoquePorSetor = useMemo(() => {
     const map = {};
     Object.entries(stock).forEach(([setorId, byClone]) => {
+      const setor = setores.find(s => s.id === setorId);
+      if (!setor) return; // Pula setores deletados
       const total = Object.values(byClone).reduce((s, byLote) => s + Object.values(byLote).reduce((a, q) => a + Math.max(0, q), 0), 0);
-      const nomSetor = setores.find(s => s.id === setorId)?.nome || setorMap[setorId] || setorId;
-      map[setorId] = { nome: nomSetor, total };
+      map[setorId] = { nome: setor.nome, total };
     });
     return Object.values(map);
-  }, [stock, setores, setorMap]);
+  }, [stock, setores]);
 
   // Estoque por clone
   const estoquePorClone = useMemo(() => {
