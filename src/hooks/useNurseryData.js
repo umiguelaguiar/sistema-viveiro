@@ -38,6 +38,7 @@ export function useProducoes() {
     queryKey: ['producoes'],
     queryFn: () => base44.entities.Producao.list('-data', 5000),
     initialData: [],
+    staleTime: 0,
   });
 }
 
@@ -46,6 +47,7 @@ export function useMovimentacoes() {
     queryKey: ['movimentacoes'],
     queryFn: () => base44.entities.Movimentacao.list('-data', 5000),
     initialData: [],
+    staleTime: 0,
   });
 }
 
@@ -54,6 +56,7 @@ export function usePerdas() {
     queryKey: ['perdas'],
     queryFn: () => base44.entities.Perda.list('-data', 5000),
     initialData: [],
+    staleTime: 0,
   });
 }
 
