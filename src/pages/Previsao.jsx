@@ -183,8 +183,8 @@ export default function Previsao() {
               <p className="text-xs text-muted-foreground">mudas / ~252 dias úteis</p>
             </div>
           </div>
-          {meta && <div className={`mt-2 text-xs font-medium ${previsaoAnual >= Number(meta) ? 'text-green-600' : 'text-amber-600'}`}>
-            Meta anual: {Number(meta).toLocaleString('pt-BR')} — {previsaoAnual >= Number(meta) ? '✅ Atingida' : '⚠️ Abaixo'}
+          {meta && <div className={`mt-2 text-xs font-medium ${previsaoAnual >= (Number(meta) * taxaPegamento) ? 'text-green-600' : 'text-amber-600'}`}>
+            Meta anual: {Math.round(Number(meta) * taxaPegamento).toLocaleString('pt-BR')} — {previsaoAnual >= (Number(meta) * taxaPegamento) ? '✅ Atingida' : '⚠️ Abaixo'}
           </div>}
         </Card>
       </div>
