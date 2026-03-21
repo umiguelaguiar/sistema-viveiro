@@ -9,6 +9,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from '@/components/layout/AppLayout';
 import Dashboard from '@/pages/Dashboard';
 import Porcentagem from '@/pages/Porcentagem';
+import Relatorio from '@/pages/Relatorio';
 import Especies from '@/pages/Especies';
 import Clones from '@/pages/Clones';
 import Lotes from '@/pages/Lotes';
