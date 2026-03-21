@@ -71,7 +71,11 @@ const AuthenticatedApp = () => {
 
   // Usuário logado mas sem role = aguardando aprovação
   if (isAuthenticated && user && !user.role) {
-    return <AguardandoPendente user={user} />;
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <AguardandoPendente user={user} />
+      </div>
+    );
   }
 
   return (
