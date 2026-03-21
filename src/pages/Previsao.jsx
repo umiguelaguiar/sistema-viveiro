@@ -41,9 +41,12 @@ export default function Previsao() {
   const totalUlt30 = ultimos30.reduce((s, p) => s + (p.quantidade || 0), 0);
   const mediaDiaria = totalUlt30 / 30;
 
-  const previsaoSemanal = Math.round(mediaDiaria * 7);
-  const previsaoMensal = Math.round(mediaDiaria * 30);
-  const previsaoAnual = Math.round(mediaDiaria * 365);
+  const taxaPegamento = Math.min(100, Math.max(0, Number(pegamento) || 100)) / 100;
+
+  const previsaoDiaria = Math.round(mediaDiaria * taxaPegamento);
+  const previsaoSemanal = Math.round(mediaDiaria * 7 * taxaPegamento);
+  const previsaoMensal = Math.round(mediaDiaria * 30 * taxaPegamento);
+  const previsaoAnual = Math.round(mediaDiaria * 365 * taxaPegamento);
 
   // Histórico mensal (12 meses)
   const historicoMensal = useMemo(() => {
