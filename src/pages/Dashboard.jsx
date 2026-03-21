@@ -225,22 +225,6 @@ export default function Dashboard() {
           sub="Perdas / Produção" />
       </div>
 
-      {/* Estoque por setor */}
-      <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Estoque por Setor</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {stockBySetor.length === 0 ? (
-            <p className="text-muted-foreground text-sm col-span-3">Nenhum setor cadastrado</p>
-          ) : stockBySetor.map(({ setor, total }) => (
-            <Card key={setor.id} className="p-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{setor.nome}</p>
-              <p className="text-3xl font-bold text-foreground mt-1">{total.toLocaleString('pt-BR')}</p>
-              <p className="text-xs text-muted-foreground">mudas em estoque</p>
-            </Card>
-          ))}
-        </div>
-      </div>
-
       {/* Ações rápidas */}
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Ações Rápidas</h2>
