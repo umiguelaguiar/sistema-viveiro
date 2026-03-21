@@ -8,7 +8,10 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 import { Navigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
+import RouteGuard from '@/components/layout/RouteGuard';
 import Dashboard from '@/pages/Dashboard';
+import Perfil from '@/pages/Perfil';
+import Admin from '@/pages/Admin';
 import Porcentagem from '@/pages/Porcentagem';
 import Relatorio from '@/pages/Relatorio';
 import Especies from '@/pages/Especies';
