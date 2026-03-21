@@ -158,7 +158,7 @@ export default function Relatorio() {
   ];
 
   return (
-    <div>
+    <div ref={contentRef}>
       <PageHeader
         title="Relatório Mensal"
         description="Visão consolidada das operações do viveiro"
