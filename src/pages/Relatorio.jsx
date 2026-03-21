@@ -24,7 +24,7 @@ function kpi(label, value, color = 'text-foreground') {
 export default function Relatorio() {
   const [mes, setMes] = useState(format(new Date(), 'yyyy-MM'));
   const [exportando, setExportando] = useState(false);
-  const contentRef = React.useRef(null);
+  const contentRef = useRef(null);
 
   const { data: producoes } = useProducoes();
   const { data: movimentacoes } = useMovimentacoes();
