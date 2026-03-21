@@ -39,6 +39,10 @@ export default function Previsao() {
     localStorage.setItem('previsao_periodo', periodo);
   }, [periodo]);
 
+  useEffect(() => {
+    localStorage.setItem('previsao_periodo_frente', periodoFrente);
+  }, [periodoFrente]);
+
   const prodFiltradas = useMemo(() => {
     let f = producoes;
     if (cloneFiltro !== 'todos') f = f.filter(p => p.clone_id === cloneFiltro);
