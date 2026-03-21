@@ -30,7 +30,11 @@ export default function Lotes() {
   };
 
   const handleDelete = async (id) => {
-    await base44.entities.Lote.delete(id);
+    try {
+      await base44.entities.Lote.delete(id);
+    } catch (e) {
+      if (!e?.message?.includes('not found')) throw e;
+    }
     queryClient.invalidateQueries({ queryKey: ['lotes'] });
   };
 
