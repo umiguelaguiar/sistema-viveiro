@@ -174,9 +174,9 @@ export default function Relatorio() {
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="outline" onClick={exportarCSV} className="gap-2">
-              <Download className="w-4 h-4" />
-              Exportar para Power BI
+            <Button variant="outline" onClick={exportarPDF} disabled={exportando} className="gap-2">
+              {exportando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              {exportando ? 'Exportando...' : 'Exportar PDF'}
             </Button>
           </div>
         }
