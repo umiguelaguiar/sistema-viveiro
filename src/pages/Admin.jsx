@@ -127,6 +127,7 @@ export default function Admin() {
           { role: ROLES.VISITANTE, label: 'Visitantes' },
           { role: ROLES.USUARIO, label: 'Usuários' },
           { role: ROLES.SUPERVISOR, label: 'Supervisores' },
+          { role: ROLES.GERENTE, label: 'Gerentes' },
           { role: ROLES.ADMIN, label: 'Administradores' },
         ].map(({ role, label }) => (
           <Card key={role} className="p-4 text-center">
