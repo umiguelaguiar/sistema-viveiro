@@ -94,9 +94,12 @@ export default function ColaboradoresFrequencia() {
     } else {
       await base44.entities.Frequencia.create(payload);
     }
-    // Se estiver pagando uma falta, atualizar o status daquela falta para 'presente'
+    // Se estiver pagando uma falta, marcar a falta compensada com a data do dia que compensou
     if (form.pagando_falta && form.data_falta_paga) {
-      await base44.entities.Frequencia.update(form.data_falta_paga, { status: 'presente', observacao: 'Falta compensada' });
+      await base44.entities.Frequencia.update(form.data_falta_paga, {
+        status: 'presente',
+        observacao: `Falta compensada em ${form.data?.split('-').reverse().join('/')}`
+      });
     }
     qc.invalidateQueries({ queryKey: ['frequencias'] });
     setOpen(false); setEditing(null); setForm(emptyForm());
