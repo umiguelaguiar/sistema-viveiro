@@ -20,7 +20,7 @@ export default function Producao() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const todayLocal = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
-  const [form, setForm] = useState({ lote_id: '', clone_id: '', quantidade: '', setor_id: '', data: todayLocal() });
+  const [form, setForm] = useState({ lote_id: '', clone_id: '', quantidade: '', bandejas: '', setor_id: '', data: todayLocal() });
 
 
 
