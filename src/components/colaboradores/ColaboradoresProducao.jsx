@@ -11,8 +11,8 @@ import { Plus, Trash2 } from 'lucide-react';
 import { getPeriodos, dataEstaNoPeriodo } from '@/lib/periodoColaboradores';
 
 const todayLocal = () => new Date().toLocaleDateString('en-CA');
-const ATIVIDADES = { tubete: 'Tubete', selecao: 'Seleção', irrigacao: 'Irrigação', expedicao: 'Expedição' };
-const ATIV_COLORS = { tubete: 'default', selecao: 'secondary', irrigacao: 'outline', expedicao: 'destructive' };
+const ATIVIDADES = { tubete: 'Tubete', selecao: 'Seleção', irrigacao: 'Irrigação', expedicao: 'Expedição', coleta: 'Coleta', plantio: 'Plantio' };
+const ATIV_COLORS = { tubete: 'default', selecao: 'secondary', irrigacao: 'outline', expedicao: 'destructive', coleta: 'secondary', plantio: 'default' };
 const periodos = getPeriodos(12);
 const emptyForm = () => ({ colaborador_id: '', data: todayLocal(), atividade: 'tubete', quantidade: '', observacao: '' });
 
