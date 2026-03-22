@@ -24,7 +24,8 @@ export default function Expedicao() {
   const { data: perdas } = usePerdas();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ lote_id: '', clone_id: '', quantidade: '', data: new Date().toISOString().split('T')[0] });
+  const todayLocal = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+  const [form, setForm] = useState({ lote_id: '', clone_id: '', quantidade: '', data: todayLocal() });
 
   const stock = useMemo(() => calculateStock(producoes, movimentacoes, perdas), [producoes, movimentacoes, perdas]);
 

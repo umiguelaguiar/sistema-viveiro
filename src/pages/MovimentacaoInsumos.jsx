@@ -20,7 +20,8 @@ export default function MovimentacaoInsumos() {
   const { data: lotes } = useLotes();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ insumo_id: '', tipo: '', quantidade: '', data: new Date().toISOString().split('T')[0], lote_id: '', clone_id: '' });
+  const todayLocal = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+  const [form, setForm] = useState({ insumo_id: '', tipo: '', quantidade: '', data: todayLocal(), lote_id: '', clone_id: '' });
 
   const handleSave = async () => {
     const payload = {
