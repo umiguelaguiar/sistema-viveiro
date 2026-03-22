@@ -52,9 +52,12 @@ export default function ColaboradoresBancoHoras() {
           <Label className="text-xs mb-1 block">Período</Label>
           <Select value={periodoKey} onValueChange={setPeriodoKey}>
             <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-            <SelectContent>{periodos.map(p => <SelectItem key={p.key} value={p.key}>{p.label}</SelectItem>)}</SelectContent>
+            <SelectContent>
+              <SelectItem value="todos">Todos os períodos</SelectItem>
+              {periodos.map(p => <SelectItem key={p.key} value={p.key}>{p.label}</SelectItem>)}
+            </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground mt-1">{getPeriodoDatasLabel(periodoKey)}</p>
+          {periodoKey !== 'todos' && <p className="text-xs text-muted-foreground mt-1">{getPeriodoDatasLabel(periodoKey)}</p>}
         </div>
         <div className="flex gap-3">
           <Card className="border-blue-200 bg-blue-50">
