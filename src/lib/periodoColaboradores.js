@@ -67,3 +67,14 @@ export function formatPeriodoLabel(periodoKey) {
   const fim = new Date(a, m, 19);
   return fim.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 }
+
+// Retorna "20/02 a 19/03/2026" para exibição completa do período
+export function getPeriodoDatasLabel(periodoKey) {
+  if (!periodoKey) return '';
+  const [a, m] = periodoKey.split('-').map(Number);
+  const inicio = new Date(a, m - 1, 20);
+  const fim = new Date(a, m, 19);
+  const fmtInicio = inicio.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  const fmtFim = fim.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return `${fmtInicio} a ${fmtFim}`;
+}
