@@ -2,7 +2,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 const ENTIDADES = [
   'Producao', 'Movimentacao', 'Perda', 'Clone', 'Lote',
-  'Setor', 'Especie', 'Insumo', 'MovimentacaoInsumo'
+  'Setor', 'Especie', 'Insumo', 'MovimentacaoInsumo',
+  'Colaborador', 'Frequencia', 'ProducaoColaborador',
+  'SolicitacaoAcesso', 'BackupSistema'
 ];
 
 async function gerarHashSHA256(texto) {
