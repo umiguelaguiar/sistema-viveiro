@@ -76,7 +76,12 @@ export default function ColaboradoresRelatorio() {
                   <td className="text-center px-3 py-2 text-amber-600 font-medium">{atestados}</td>
                   <td className="text-center px-3 py-2 text-blue-600 font-medium">{folgas}</td>
                   <td className="text-center px-3 py-2">
-                    {hExtras > 0 ? <Badge variant="outline" className="text-xs">+{hExtras.toFixed(1)}h</Badge> : <span className="text-muted-foreground">—</span>}
+                    {hExtras > 0 ? (
+                      <div className="flex flex-col items-center gap-1">
+                        {hExtrasBanco > 0 && <Badge variant="outline" className="text-xs text-blue-600 border-blue-300">+{hExtrasBanco.toFixed(1)}h Banco</Badge>}
+                        {hExtrasPagamento > 0 && <Badge variant="outline" className="text-xs text-green-600 border-green-300">+{hExtrasPagamento.toFixed(1)}h Pgto</Badge>}
+                      </div>
+                    ) : <span className="text-muted-foreground">—</span>}
                   </td>
                   <td className="text-center px-3 py-2 font-medium">
                     {producao > 0 ? producao.toLocaleString('pt-BR') : <span className="text-muted-foreground">—</span>}
