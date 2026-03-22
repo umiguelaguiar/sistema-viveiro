@@ -206,6 +206,12 @@ export default function ColaboradoresFrequencia() {
                 </div>
               </div>
 
+              {jaExisteNoDia && (
+                <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-xs text-destructive font-medium">
+                  ⚠️ Já existe um registro para este colaborador nesta data.
+                </div>
+              )}
+
               {form.status === 'presente' && (
                 <>
                   {weekend && (
@@ -219,8 +225,30 @@ export default function ColaboradoresFrequencia() {
                   </div>
                   <div className="flex items-center gap-3">
                     <input type="checkbox" id="plantao" checked={form.e_plantao} onChange={e => sf('e_plantao', e.target.checked)} className="w-4 h-4" />
-                    <Label htmlFor="plantao" className="cursor-pointer">Plantão (sem desconto de almoço)</Label>
+                    <Label htmlFor="plantao" className="cursor-pointer">Plantão (sem desconto de almoço, horas extras contabilizadas acima de 9h)</Label>
                   </div>
+                  <div className="flex items-center gap-3">
+                    <input type="checkbox" id="pagando_falta" checked={form.pagando_falta} onChange={e => sf('pagando_falta', e.target.checked)} className="w-4 h-4" />
+                    <Label htmlFor="pagando_falta" className="cursor-pointer">Pagando uma falta</Label>
+                  </div>
+                  {form.pagando_falta && (
+                    <div>
+                      <Label>Selecionar falta a compensar</Label>
+                      {faltasDoColab.length === 0
+                        ? <p className="text-xs text-muted-foreground mt-1">Nenhuma falta registrada para este colaborador.</p>
+                        : <Select value={form.data_falta_paga} onValueChange={v => sf('data_falta_paga', v)}>
+                            <SelectTrigger><SelectValue placeholder="Escolha a data da falta..." /></SelectTrigger>
+                            <SelectContent>
+                              {faltasDoColab.map(f => (
+                                <SelectItem key={f.id} value={f.id}>
+                                  {f.data?.split('-').reverse().join('/')}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                      }
+                    </div>
+                  )}
                   {trabalhadas !== null && (
                     <div className="bg-muted rounded-lg p-3 text-sm space-y-1">
                       <div className="flex justify-between"><span>Horas trabalhadas:</span><strong>{trabalhadas}h</strong></div>
@@ -243,7 +271,7 @@ export default function ColaboradoresFrequencia() {
               )}
               <div><Label>Observação</Label><Input value={form.observacao} onChange={e => sf('observacao', e.target.value)} placeholder="Opcional" /></div>
               {!form.colaborador_id && <p className="text-xs text-destructive">Selecione um colaborador para continuar.</p>}
-              <Button className="w-full" onClick={save} disabled={!form.colaborador_id}>Salvar</Button>
+              <Button className="w-full" onClick={save} disabled={!form.colaborador_id || jaExisteNoDia}>Salvar</Button>
             </div>
           </DialogContent>
         </Dialog>
