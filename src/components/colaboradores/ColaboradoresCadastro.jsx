@@ -206,6 +206,24 @@ export default function ColaboradoresCadastro() {
         </DialogContent>
       </Dialog>
 
+      {/* Dialog de confirmação de exclusão */}
+      <Dialog open={!!excluindoId} onOpenChange={(v) => { if (!v) setExcluindoId(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="w-5 h-5" /> Excluir Ex-funcionário
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Esta ação é permanente e não pode ser desfeita. O registro do colaborador será removido do sistema.
+          </p>
+          <div className="flex gap-2 mt-2">
+            <Button variant="outline" className="flex-1" onClick={() => setExcluindoId(null)}>Cancelar</Button>
+            <Button variant="destructive" className="flex-1" onClick={() => excluirExFuncionario(excluindoId)}>Excluir Permanentemente</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Seção ex-funcionários */}
       {desligados.length > 0 && (
         <div className="mt-6">
