@@ -32,6 +32,7 @@ export default function ColaboradoresRelatorio() {
           </Select>
         </div>
         <span className="text-sm text-muted-foreground capitalize">{formatPeriodoLabel(periodoKey)}</span>
+        <span className="text-xs bg-muted px-2 py-1 rounded-md text-muted-foreground">{getPeriodoDatasLabel(periodoKey)}</span>
       </div>
 
       <div className="overflow-x-auto">

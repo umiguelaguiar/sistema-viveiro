@@ -52,6 +52,7 @@ export default function ColaboradoresBancoHoras() {
             <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
             <SelectContent>{periodos.map(p => <SelectItem key={p.key} value={p.key}>{p.label}</SelectItem>)}</SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground mt-1">{getPeriodoDatasLabel(periodoKey)}</p>
         </div>
         <div className="flex gap-3">
           <Card className="border-blue-200 bg-blue-50">
