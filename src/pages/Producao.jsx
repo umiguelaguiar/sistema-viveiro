@@ -60,6 +60,7 @@ export default function Producao() {
     { header: 'Lote', render: (row) => loteMap[row.lote_id] || '—' },
     { header: 'Setor', render: (row) => setorMap[row.setor_id] || '—' },
     { header: 'Quantidade', render: (row) => row.quantidade?.toLocaleString('pt-BR') },
+    { header: 'Bandejas', render: (row) => row.quantidade ? `${Math.ceil(row.quantidade / 187).toLocaleString('pt-BR')} bdj` : '—' },
   ];
 
   return (
