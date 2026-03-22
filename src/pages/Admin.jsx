@@ -122,7 +122,7 @@ export default function Admin() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
         {[
           { role: ROLES.VISITANTE, label: 'Visitantes' },
           { role: ROLES.USUARIO, label: 'Usuários' },
