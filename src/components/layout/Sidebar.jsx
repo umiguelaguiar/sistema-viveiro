@@ -4,7 +4,7 @@ import {
   LayoutDashboard, TreePine, GitBranch, Layers, Factory,
   ArrowRightLeft, Truck, Skull, Package, PackageCheck,
   ChevronLeft, ChevronRight, FileBarChart2, Percent, Boxes,
-  TrendingUp, Download, ShieldAlert, UserCircle
+  TrendingUp, Download, ShieldAlert, UserCircle, Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
@@ -26,6 +26,7 @@ const allNavItems = [
   { label: 'Insumos', icon: Package, path: '/insumos' },
   { label: 'Mov. Insumos', icon: PackageCheck, path: '/movimentacao-insumos' },
   { label: 'Backup', icon: Download, path: '/backup' },
+  { label: 'Colaboradores', icon: Users, path: '/colaboradores' },
 ];
 
 export default function Sidebar({ collapsed, setCollapsed }) {

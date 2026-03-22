@@ -14,7 +14,7 @@ export const ROLE_ROUTES = {
   [ROLES.SUPERVISOR]: [
     '/', '/estoque', '/relatorio', '/porcentagem', '/previsao', '/insumos',
     '/producao', '/transferencia', '/expedicao', '/perdas', '/clones',
-    '/lotes', '/especies', '/movimentacao-insumos', '/backup',
+    '/lotes', '/especies', '/movimentacao-insumos', '/backup', '/colaboradores',
   ],
   [ROLES.ADMIN]: 'all', // all routes including /admin
 };

@@ -28,6 +28,7 @@ import MovimentacaoInsumos from '@/pages/MovimentacaoInsumos';
 import Estoque from '@/pages/Estoque';
 import Previsao from '@/pages/Previsao';
 import Backup from '@/pages/Backup';
+import Colaboradores from '@/pages/Colaboradores';
 import SolicitarAcesso from '@/pages/SolicitarAcesso';
 import AguardandoAprovacao from '@/pages/AguardandoAprovacao';
 import AcessoNegado from '@/pages/AcessoNegado';
@@ -104,6 +105,7 @@ const AuthenticatedApp = () => {
         <Route path="/estoque" element={<RouteGuard><Estoque /></RouteGuard>} />
         <Route path="/previsao" element={<RouteGuard><Previsao /></RouteGuard>} />
         <Route path="/backup" element={<RouteGuard><Backup /></RouteGuard>} />
+        <Route path="/colaboradores" element={<RouteGuard><Colaboradores /></RouteGuard>} />
       </Route>
       <Route path="/solicitar-acesso" element={<SolicitarAcesso />} />
       <Route path="/Dashboard" element={<Navigate to="/" replace />} />
