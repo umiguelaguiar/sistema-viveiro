@@ -58,7 +58,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-        {visibleItems.map(item => {
+        {visibleItems.map((item, idx) => {
+          if (item.divider) {
+            return <div key={`divider-${idx}`} className="my-2 border-t border-sidebar-border opacity-40" />;
+          }
           const isActive = location.pathname === item.path;
           return (
             <Link
