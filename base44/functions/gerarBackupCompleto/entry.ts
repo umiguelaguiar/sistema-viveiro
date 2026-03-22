@@ -15,13 +15,27 @@ async function gerarHashSHA256(texto) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+async function listarTodos(entityClient) {
+  const pageSize = 500;
+  let skip = 0;
+  let todos = [];
+  while (true) {
+    const pagina = await entityClient.list(undefined, pageSize, skip);
+    if (!pagina || pagina.length === 0) break;
+    todos = todos.concat(pagina);
+    if (pagina.length < pageSize) break;
+    skip += pageSize;
+  }
+  return todos;
+}
+
 async function coletarDados(base44) {
   const dados = {};
   const entidadesInfo = [];
 
   for (const entidade of ENTIDADES) {
     try {
-      const registros = await base44.asServiceRole.entities[entidade].list();
+      const registros = await listarTodos(base44.asServiceRole.entities[entidade]);
       dados[entidade] = registros || [];
       entidadesInfo.push({
         entidade,
