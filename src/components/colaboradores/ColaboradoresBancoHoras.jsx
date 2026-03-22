@@ -47,7 +47,7 @@ export default function ColaboradoresBancoHoras() {
   const queryClient = useQueryClient();
 
   const detalhes = colabDetalhe
-    ? freqPeriodo.filter(f => f.colaborador_id === colabDetalhe && f.horas_extras > 0)
+    ? frequencias.filter(f => f.colaborador_id === colabDetalhe && f.horas_extras > 0 && f.tipo_hora_extra === 'banco_horas')
     : [];
 
   const handleConsumirDia = async (freq, checked) => {
