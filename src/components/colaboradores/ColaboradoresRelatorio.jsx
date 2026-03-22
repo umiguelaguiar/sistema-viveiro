@@ -60,7 +60,9 @@ export default function ColaboradoresRelatorio() {
               const faltas = cf.filter(f => f.status === 'falta').length;
               const atestados = cf.filter(f => f.status === 'atestado').length;
               const folgas = cf.filter(f => f.status === 'folga').length;
-              const hExtras = cf.reduce((s, f) => s + (f.horas_extras || 0), 0);
+              const hExtrasBanco = cf.filter(f => f.tipo_hora_extra === 'banco_horas').reduce((s, f) => s + (f.horas_extras || 0), 0);
+              const hExtrasPagamento = cf.filter(f => f.tipo_hora_extra === 'pagamento').reduce((s, f) => s + (f.horas_extras || 0), 0);
+              const hExtras = hExtrasBanco + hExtrasPagamento;
               const producao = prodPeriodo.filter(p => p.colaborador_id === c.id).reduce((s, p) => s + (p.quantidade || 0), 0);
               return (
                 <tr key={c.id} className="border-b border-border hover:bg-muted/50">
