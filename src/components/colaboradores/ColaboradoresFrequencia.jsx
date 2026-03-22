@@ -372,7 +372,7 @@ function ColabCard({ colab, registros, onEdit, onDelete }) {
                 </div>
                 <div className="flex gap-1 ml-2">
                   <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onEdit(f)}><Pencil className="w-3.5 h-3.5" /></Button>
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onDelete(f.id)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onDelete(f)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
                 </div>
               </div>
             );
