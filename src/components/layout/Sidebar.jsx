@@ -26,6 +26,7 @@ const allNavItems = [
   { label: 'Insumos', icon: Package, path: '/insumos' },
   { label: 'Mov. Insumos', icon: PackageCheck, path: '/movimentacao-insumos' },
   { label: 'Backup', icon: Download, path: '/backup' },
+  { divider: true },
   { label: 'Colaboradores', icon: Users, path: '/colaboradores' },
 ];
 
