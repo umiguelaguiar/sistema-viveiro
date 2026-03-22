@@ -234,6 +234,13 @@ export default function ColaboradoresCadastro() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs text-muted-foreground">Desligado</Badge>
+                        <Button
+                          size="icon" variant="ghost"
+                          title="Excluir permanentemente"
+                          onClick={(e) => { e.stopPropagation(); setExcluindoId(col.id); }}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
                         {aberto ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
                       </div>
                     </button>
