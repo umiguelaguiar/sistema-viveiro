@@ -196,19 +196,17 @@ export default function ColaboradoresFrequencia() {
                 <>
                   {weekend && (
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-700 font-medium">
-                      ⚠️ Final de semana — registrado como plantão automaticamente. Todo trabalho conta como hora extra.
+                      ⚠️ Final de semana detectado.
                     </div>
                   )}
                   <div className="grid grid-cols-2 gap-3">
                     <div><Label>Entrada</Label><Input type="time" value={form.hora_entrada} onChange={e => sf('hora_entrada', e.target.value)} /></div>
                     <div><Label>Saída</Label><Input type="time" value={form.hora_saida} onChange={e => sf('hora_saida', e.target.value)} /></div>
                   </div>
-                  {!weekend && (
-                    <div className="flex items-center gap-3">
-                      <input type="checkbox" id="plantao" checked={form.e_plantao} onChange={e => sf('e_plantao', e.target.checked)} className="w-4 h-4" />
-                      <Label htmlFor="plantao" className="cursor-pointer">Plantão (sem desconto de almoço)</Label>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3">
+                    <input type="checkbox" id="plantao" checked={form.e_plantao} onChange={e => sf('e_plantao', e.target.checked)} className="w-4 h-4" />
+                    <Label htmlFor="plantao" className="cursor-pointer">Plantão (sem desconto de almoço)</Label>
+                  </div>
                   {trabalhadas !== null && (
                     <div className="bg-muted rounded-lg p-3 text-sm space-y-1">
                       <div className="flex justify-between"><span>Horas trabalhadas:</span><strong>{trabalhadas}h</strong></div>
