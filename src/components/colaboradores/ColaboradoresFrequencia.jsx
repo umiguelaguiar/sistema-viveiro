@@ -105,8 +105,12 @@ export default function ColaboradoresFrequencia() {
     setOpen(false); setEditing(null); setForm(emptyForm());
   };
 
-  const del = async (id) => {
-    await base44.entities.Frequencia.delete(id);
+  const del = async (registro) => {
+    // Se o registro pagava uma falta, reverter a falta (buscar pelo campo data_falta_paga)
+    if (registro.pagando_falta && registro.data_falta_paga) {
+      await base44.entities.Frequencia.update(registro.data_falta_paga, { status: 'falta', observacao: '' });
+    }
+    await base44.entities.Frequencia.delete(registro.id);
     qc.invalidateQueries({ queryKey: ['frequencias'] });
   };
 
