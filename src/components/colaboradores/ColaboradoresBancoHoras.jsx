@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, TrendingUp, Banknote } from 'lucide-react';
+import { Clock, TrendingUp, Banknote, CheckCircle2 } from 'lucide-react';
 import { getPeriodos, dataEstaNoPeriodo, getPeriodoDatasLabel } from '@/lib/periodoColaboradores';
 
 const periodos = getPeriodos(12);
