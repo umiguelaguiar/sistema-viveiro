@@ -112,7 +112,8 @@ export default function ColaboradoresFrequencia() {
     setForm({
       colaborador_id: f.colaborador_id, data: f.data, status: f.status,
       hora_entrada: f.hora_entrada || '07:00', hora_saida: f.hora_saida || '17:00',
-      e_plantao: f.e_plantao || false, tipo_hora_extra: f.tipo_hora_extra || 'banco_horas',
+      e_plantao: f.e_plantao || false, pagando_falta: false, data_falta_paga: '',
+      tipo_hora_extra: f.tipo_hora_extra || 'banco_horas',
       observacao: f.observacao || ''
     });
     setOpen(true);
