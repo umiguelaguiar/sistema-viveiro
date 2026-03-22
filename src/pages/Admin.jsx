@@ -62,6 +62,7 @@ function UserRow({ u, currentUserId }) {
             <SelectItem value={ROLES.VISITANTE}>Visitante</SelectItem>
             <SelectItem value={ROLES.USUARIO}>Usuário</SelectItem>
             <SelectItem value={ROLES.SUPERVISOR}>Supervisor</SelectItem>
+            <SelectItem value={ROLES.GERENTE}>Gerente</SelectItem>
             <SelectItem value={ROLES.ADMIN}>Administrador</SelectItem>
           </SelectContent>
         </Select>
