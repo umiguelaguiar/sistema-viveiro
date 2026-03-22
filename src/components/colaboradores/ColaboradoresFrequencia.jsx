@@ -37,17 +37,14 @@ function calcHoras(entrada, saida, isWeekend, isPlantao) {
   return { trabalhadas: parseFloat(trabalhadas.toFixed(2)), extras: parseFloat(extras.toFixed(2)) };
 }
 
-const emptyForm = (data = todayLocal()) => {
-  const weekend = isWeekendDate(data);
-  return {
-    colaborador_id: '', data,
-    status: 'presente',
-    hora_entrada: '07:00', hora_saida: '17:00',
-    e_plantao: weekend, // auto-plantão no fim de semana
-    tipo_hora_extra: 'banco_horas',
-    observacao: ''
-  };
-};
+const emptyForm = (data = todayLocal()) => ({
+  colaborador_id: '', data,
+  status: 'presente',
+  hora_entrada: '07:00', hora_saida: '17:00',
+  e_plantao: false,
+  tipo_hora_extra: 'banco_horas',
+  observacao: ''
+});
 
 const periodos = getPeriodos(12);
 
