@@ -16,8 +16,8 @@ export default function ColaboradoresRelatorio() {
   const { data: frequencias = [] } = useQuery({ queryKey: ['frequencias'], queryFn: () => base44.entities.Frequencia.list('-data', 1000) });
   const { data: producoes = [] } = useQuery({ queryKey: ['producoes-colab'], queryFn: () => base44.entities.ProducaoColaborador.list('-data', 1000) });
 
-  const freqPeriodo = frequencias.filter(f => dataEstaNoPeriodo(f.data, periodoKey));
-  const prodPeriodo = producoes.filter(p => dataEstaNoPeriodo(p.data, periodoKey));
+  const freqPeriodo = periodoKey === 'todos' ? frequencias : frequencias.filter(f => dataEstaNoPeriodo(f.data, periodoKey));
+  const prodPeriodo = periodoKey === 'todos' ? producoes : producoes.filter(p => dataEstaNoPeriodo(p.data, periodoKey));
 
   const colabAtivos = colaboradores.filter(c => (c.status_colaborador || 'ativo') !== 'inativo' && (c.status_colaborador || 'ativo') !== 'desligado');
 
