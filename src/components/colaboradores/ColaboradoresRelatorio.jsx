@@ -28,11 +28,16 @@ export default function ColaboradoresRelatorio() {
           <Label>Período:</Label>
           <Select value={periodoKey} onValueChange={setPeriodoKey}>
             <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-            <SelectContent>{periodos.map(p => <SelectItem key={p.key} value={p.key}>{p.label}</SelectItem>)}</SelectContent>
+            <SelectContent>
+              <SelectItem value="todos">Todos os períodos</SelectItem>
+              {periodos.map(p => <SelectItem key={p.key} value={p.key}>{p.label}</SelectItem>)}
+            </SelectContent>
           </Select>
         </div>
-        <span className="text-sm text-muted-foreground capitalize">{formatPeriodoLabel(periodoKey)}</span>
-        <span className="text-xs bg-muted px-2 py-1 rounded-md text-muted-foreground">{getPeriodoDatasLabel(periodoKey)}</span>
+        {periodoKey !== 'todos' && <>
+          <span className="text-sm text-muted-foreground capitalize">{formatPeriodoLabel(periodoKey)}</span>
+          <span className="text-xs bg-muted px-2 py-1 rounded-md text-muted-foreground">{getPeriodoDatasLabel(periodoKey)}</span>
+        </>}
       </div>
 
       <div className="overflow-x-auto">
