@@ -52,14 +52,10 @@ export default function ColaboradoresBancoHoras() {
 
   const handleConsumirDia = async (freq, checked) => {
     setConsumindo(prev => ({ ...prev, [freq.id]: true }));
-    if (checked) {
-      await base44.entities.Frequencia.update(freq.id, {
-        horas_extras: 0,
-        tipo_hora_extra: null
-      });
-    } else {
-      // Não faz nada — não é possível desfazer sem os dados originais
-    }
+    await base44.entities.Frequencia.update(freq.id, {
+      banco_horas_utilizado: checked,
+      data_utilizacao_banco: checked ? new Date().toISOString().split('T')[0] : null
+    });
     queryClient.invalidateQueries({ queryKey: ['frequencias'] });
     setConsumindo(prev => ({ ...prev, [freq.id]: false }));
   };
