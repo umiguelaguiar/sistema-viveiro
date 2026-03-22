@@ -108,8 +108,9 @@ export default function Producao() {
               </Select>
             </div>
             <div>
-              <Label>Quantidade</Label>
-              <Input type="number" value={form.quantidade} onChange={e => setForm({ ...form, quantidade: e.target.value })} placeholder="Ex: 1000" />
+              <Label>Quantidade de Bandejas</Label>
+              <Input type="number" value={form.bandejas} onChange={e => setForm({ ...form, bandejas: e.target.value, quantidade: e.target.value ? String(Number(e.target.value) * 187) : '' })} placeholder="Ex: 10" />
+              {form.bandejas && <p className="text-xs text-muted-foreground mt-1">{(Number(form.bandejas) * 187).toLocaleString('pt-BR')} mudas</p>}
             </div>
             <div>
               <Label>Data</Label>
