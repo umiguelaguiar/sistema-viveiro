@@ -41,6 +41,8 @@ const emptyForm = (data = todayLocal()) => ({
   status: 'presente',
   hora_entrada: '07:00', hora_saida: '17:00',
   e_plantao: false,
+  pagando_falta: false,
+  data_falta_paga: '',
   tipo_hora_extra: 'banco_horas',
   observacao: ''
 });
