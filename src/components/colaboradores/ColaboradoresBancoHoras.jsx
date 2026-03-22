@@ -65,7 +65,18 @@ export default function ColaboradoresBancoHoras() {
 
   return (
     <div className="space-y-6 pt-4">
-      <div className="flex flex-wrap gap-3 items-end justify-end">
+      <div className="flex flex-wrap gap-3 items-end justify-between">
+        <div>
+          <Label className="text-xs mb-1 block">Período (Pagamento 100%)</Label>
+          <Select value={periodoKey} onValueChange={setPeriodoKey}>
+            <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os períodos</SelectItem>
+              {periodos.map(p => <SelectItem key={p.key} value={p.key}>{p.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          {periodoKey !== 'todos' && <p className="text-xs text-muted-foreground mt-1">{getPeriodoDatasLabel(periodoKey)}</p>}
+        </div>
         <div className="flex gap-3">
           <Card className="border-blue-200 bg-blue-50">
             <CardContent className="p-3 flex items-center gap-2">
