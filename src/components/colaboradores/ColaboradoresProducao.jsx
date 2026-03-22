@@ -50,7 +50,10 @@ export default function ColaboradoresProducao() {
             <Label className="text-xs mb-1 block">Período</Label>
             <Select value={periodoKey} onValueChange={setPeriodoKey}>
               <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-              <SelectContent>{periodos.map(p => <SelectItem key={p.key} value={p.key}>{p.label}</SelectItem>)}</SelectContent>
+              <SelectContent>
+                <SelectItem value="todos">Todos os períodos</SelectItem>
+                {periodos.map(p => <SelectItem key={p.key} value={p.key}>{p.label}</SelectItem>)}
+              </SelectContent>
             </Select>
           </div>
           {filtradas.length > 0 && <span className="text-sm text-muted-foreground mt-4">Total: <strong>{total.toLocaleString('pt-BR')}</strong></span>}
