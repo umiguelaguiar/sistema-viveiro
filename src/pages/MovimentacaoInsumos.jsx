@@ -52,7 +52,7 @@ export default function MovimentacaoInsumos() {
   lotes.forEach(l => { loteMap[l.id] = l.codigo; });
 
   const columns = [
-    { header: 'Data', render: (row) => row.data ? format(new Date(row.data), 'dd/MM/yyyy') : '—' },
+    { header: 'Data', render: (row) => row.data ? row.data.split('-').reverse().join('/') : '—' },
     { header: 'Insumo', render: (row) => insumoMap[row.insumo_id]?.nome || '—' },
     {
       header: 'Tipo',

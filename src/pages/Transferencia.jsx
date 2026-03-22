@@ -68,7 +68,7 @@ export default function Transferencia() {
   setores.forEach(s => { setorMap[s.id] = s.nome; });
 
   const columns = [
-    { header: 'Data', render: (row) => row.data ? format(new Date(row.data), 'dd/MM/yyyy') : '—' },
+    { header: 'Data', render: (row) => row.data ? row.data.split('-').reverse().join('/') : '—' },
     { header: 'Clone', render: (row) => cloneMap[row.clone_id] || '—' },
     { header: 'Lote', render: (row) => loteMap[row.lote_id] || '—' },
     { header: 'Origem', render: (row) => setorMap[row.setor_origem_id] || '—' },

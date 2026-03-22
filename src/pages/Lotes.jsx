@@ -38,7 +38,7 @@ export default function Lotes() {
 
   const columns = [
     { header: 'Código', accessor: 'codigo' },
-    { header: 'Data Início', render: (row) => row.data_inicio ? format(new Date(row.data_inicio), 'dd/MM/yyyy') : '—' },
+    { header: 'Data Início', render: (row) => row.data_inicio ? row.data_inicio.split('-').reverse().join('/') : '—' },
     { header: 'Qtd. Inicial', render: (row) => row.quantidade_inicial?.toLocaleString('pt-BR') || '—' },
   ];
 
