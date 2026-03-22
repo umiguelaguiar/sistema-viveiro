@@ -132,18 +132,28 @@ export default function ColaboradoresBancoHoras() {
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Registros com horas extras</p>
                 {detalhes.length === 0 && <p className="text-sm text-muted-foreground">Nenhum registro com horas extras neste período.</p>}
                 {detalhes.map(f => (
-                  <div key={f.id} className="flex items-center justify-between text-sm py-1 border-b border-border/50 last:border-0">
-                    <span className="text-muted-foreground">{f.data?.split('-').reverse().join('/')}</span>
-                    <span>{f.hora_entrada}–{f.hora_saida}</span>
-                    <span className="font-medium">{f.horas_trabalhadas}h trabalhadas</span>
-                    <div className="flex items-center gap-1">
-                      <Badge
-                        variant="outline"
-                        className={f.tipo_hora_extra === 'banco_horas' ? 'text-blue-600 border-blue-300' : 'text-green-600 border-green-300'}
-                      >
-                        +{f.horas_extras}h · {f.tipo_hora_extra === 'banco_horas' ? 'Banco' : 'Pagamento'}
-                      </Badge>
-                    </div>
+                  <div key={f.id} className="flex items-center justify-between text-sm py-1 border-b border-border/50 last:border-0 gap-2">
+                    <span className="text-muted-foreground w-20">{f.data?.split('-').reverse().join('/')}</span>
+                    <span className="hidden sm:inline">{f.hora_entrada}–{f.hora_saida}</span>
+                    <span className="font-medium hidden sm:inline">{f.horas_trabalhadas}h trabalhadas</span>
+                    <Badge
+                      variant="outline"
+                      className={f.tipo_hora_extra === 'banco_horas' ? 'text-blue-600 border-blue-300' : 'text-green-600 border-green-300'}
+                    >
+                      +{f.horas_extras}h · {f.tipo_hora_extra === 'banco_horas' ? 'Banco' : 'Pagamento'}
+                    </Badge>
+                    {f.tipo_hora_extra === 'banco_horas' && (
+                      <div className="flex items-center gap-1.5 ml-2">
+                        <Checkbox
+                          id={`consumir-${f.id}`}
+                          disabled={consumindo[f.id]}
+                          onCheckedChange={(checked) => handleConsumirDia(f, checked)}
+                        />
+                        <label htmlFor={`consumir-${f.id}`} className="text-xs text-muted-foreground cursor-pointer select-none whitespace-nowrap">
+                          Dia utilizado
+                        </label>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
