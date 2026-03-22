@@ -6,19 +6,33 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Clock, TrendingUp, Banknote, CheckCircle2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getPeriodos, dataEstaNoPeriodo, getPeriodoDatasLabel } from '@/lib/periodoColaboradores';
+
+const periodos = getPeriodos(12);
 
 export default function ColaboradoresBancoHoras() {
+  const [periodoKey, setPeriodoKey] = useState(periodos[0]?.key || '');
+
   const { data: colaboradores = [] } = useQuery({ queryKey: ['colaboradores'], queryFn: () => base44.entities.Colaborador.list() });
   const { data: frequencias = [] } = useQuery({ queryKey: ['frequencias'], queryFn: () => base44.entities.Frequencia.list('-data', 1000) });
+
+  // Para pagamento: filtra pelo período. Para banco de horas: usa tudo.
+  const freqPeriodoPagamento = periodoKey === 'todos'
+    ? frequencias
+    : frequencias.filter(f => dataEstaNoPeriodo(f.data, periodoKey));
 
   const colabsComHoras = colaboradores
     .filter(c => (c.status_colaborador || 'ativo') !== 'inativo')
     .map(c => {
-      const cf = frequencias.filter(f => f.colaborador_id === c.id && f.status === 'presente');
+      const cfBanco = frequencias.filter(f => f.colaborador_id === c.id && f.status === 'presente');
+      const cfPagamento = freqPeriodoPagamento.filter(f => f.colaborador_id === c.id && f.status === 'presente');
+      const cf = cfBanco; // para diasPresente usamos tudo
       const totalExtras = cf.reduce((s, f) => s + (f.horas_extras || 0), 0);
-      // Só conta banco de horas disponível (não utilizado)
-      const extrasBanco = cf.filter(f => f.tipo_hora_extra === 'banco_horas' && !f.banco_horas_utilizado).reduce((s, f) => s + (f.horas_extras || 0), 0);
-      const extrasPagamento = cf.filter(f => f.tipo_hora_extra === 'pagamento').reduce((s, f) => s + (f.horas_extras || 0), 0);
+      // Banco de horas: sem filtro de período
+      const extrasBanco = cfBanco.filter(f => f.tipo_hora_extra === 'banco_horas' && !f.banco_horas_utilizado).reduce((s, f) => s + (f.horas_extras || 0), 0);
+      // Pagamento: filtrado pelo período
+      const extrasPagamento = cfPagamento.filter(f => f.tipo_hora_extra === 'pagamento').reduce((s, f) => s + (f.horas_extras || 0), 0);
       const totalTrabalhadas = cf.reduce((s, f) => s + (f.horas_trabalhadas || 0), 0);
 
       // Dias trabalhados vs esperados (dias úteis no período)
