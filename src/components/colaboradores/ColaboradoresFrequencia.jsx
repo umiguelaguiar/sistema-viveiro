@@ -232,7 +232,7 @@ export default function ColaboradoresFrequencia() {
                   </div>
                   <div className="flex items-center gap-3">
                     <input type="checkbox" id="plantao" checked={form.e_plantao} onChange={e => sf('e_plantao', e.target.checked)} className="w-4 h-4" />
-                    <Label htmlFor="plantao" className="cursor-pointer">Plantão (sem desconto de almoço, horas extras contabilizadas acima de 9h)</Label>
+                    <Label htmlFor="plantao" className="cursor-pointer">Plantão (sem desconto de almoço)</Label>
                   </div>
                   <div className="flex items-center gap-3">
                     <input type="checkbox" id="pagando_falta" checked={form.pagando_falta} onChange={e => sf('pagando_falta', e.target.checked)} className="w-4 h-4" />
