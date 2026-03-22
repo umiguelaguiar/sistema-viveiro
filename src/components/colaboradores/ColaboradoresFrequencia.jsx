@@ -63,14 +63,7 @@ export default function ColaboradoresFrequencia() {
   const colabsAtivos = colaboradores.filter(c => (c.status_colaborador || 'ativo') === 'ativo');
   const colabMap = Object.fromEntries(colaboradores.map(c => [c.id, c]));
 
-  const sf = (k, v) => setForm(f => {
-    const updated = { ...f, [k]: v };
-    // Se mudou a data, auto-set plantão no fim de semana
-    if (k === 'data') {
-      updated.e_plantao = isWeekendDate(v);
-    }
-    return updated;
-  });
+  const sf = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const weekend = isWeekendDate(form.data);
   const skipHoras = ['atestado', 'folga'].includes(form.status);
