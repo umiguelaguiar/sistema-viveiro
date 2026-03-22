@@ -254,40 +254,92 @@ export default function ColaboradoresFrequencia() {
         <Badge variant="outline">Folgas: {folgas}</Badge>
       </div>
 
-      {/* Lista completa */}
-      <div className="space-y-2">
-        {freqOrdenadas.length === 0 && <p className="text-sm text-muted-foreground">Nenhum registro neste período.</p>}
-        {freqOrdenadas.map(f => {
-          const colab = colabMap[f.colaborador_id];
-          const fw = isWeekendDate(f.data);
-          return (
-            <div key={f.id} className="flex items-center justify-between bg-card border border-border rounded-lg px-4 py-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-medium text-sm">{colab?.nome || '—'}</p>
-                  <span className="text-xs text-muted-foreground">{f.data?.split('-').reverse().join('/')}</span>
-                  {fw && <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">FDS</Badge>}
-                </div>
-                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  <Badge variant={STATUS_COLORS[f.status]} className="text-xs">{STATUS_LABELS[f.status]}</Badge>
+      {/* Lista agrupada por colaborador */}
+      <div className="space-y-3">
+        {colaboradoresComFreq.length === 0 && <p className="text-sm text-muted-foreground">Nenhum registro neste período.</p>}
+        {colaboradoresComFreq.map(colabId => (
+          <ColabCard
+            key={colabId}
+            colab={colabMap[colabId]}
+            registros={grupoPorColab[colabId]}
+            onEdit={openEdit}
+            onDelete={del}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ColabCard({ colab, registros, onEdit, onDelete }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const presentes = registros.filter(f => f.status === 'presente').length;
+  const faltas = registros.filter(f => f.status === 'falta').length;
+  const atestados = registros.filter(f => f.status === 'atestado').length;
+  const folgas = registros.filter(f => f.status === 'folga').length;
+  const totalHoras = registros.reduce((sum, f) => sum + (f.horas_trabalhadas || 0), 0);
+  const totalExtras = registros.reduce((sum, f) => sum + (f.horas_extras || 0), 0);
+
+  return (
+    <div className="bg-card border border-border rounded-lg overflow-hidden">
+      {/* Cabeçalho do card */}
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/40 transition-colors text-left"
+        onClick={() => setExpanded(e => !e)}
+      >
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+            {(colab?.nome || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-sm">{colab?.nome || '—'}</p>
+            <p className="text-xs text-muted-foreground">{registros.length} registro{registros.length !== 1 ? 's' : ''}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          {presentes > 0 && <Badge variant="default" className="text-xs">{presentes}P</Badge>}
+          {faltas > 0 && <Badge variant="destructive" className="text-xs">{faltas}F</Badge>}
+          {atestados > 0 && <Badge variant="secondary" className="text-xs">{atestados}A</Badge>}
+          {folgas > 0 && <Badge variant="outline" className="text-xs">{folgas}Fg</Badge>}
+          {totalHoras > 0 && <span className="text-xs text-muted-foreground">{totalHoras.toFixed(1)}h</span>}
+          {totalExtras > 0 && <span className="text-xs text-amber-600">+{totalExtras.toFixed(1)}h extra</span>}
+          {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground ml-1" /> : <ChevronDown className="w-4 h-4 text-muted-foreground ml-1" />}
+        </div>
+      </button>
+
+      {/* Registros expandidos */}
+      {expanded && (
+        <div className="border-t border-border divide-y divide-border">
+          {registros.map(f => {
+            const fw = isWeekendDate(f.data);
+            return (
+              <div key={f.id} className="flex items-center justify-between px-4 py-2.5 bg-muted/20">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-medium">{f.data?.split('-').reverse().join('/')}</span>
+                    {fw && <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">FDS</Badge>}
+                    <Badge variant={STATUS_COLORS[f.status]} className="text-xs">{STATUS_LABELS[f.status]}</Badge>
+                  </div>
                   {f.hora_entrada && f.hora_saida && f.status === 'presente' && (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Clock className="w-3 h-3" />{f.hora_entrada}–{f.hora_saida}
+                    <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground">
+                      <Clock className="w-3 h-3" />
+                      {f.hora_entrada}–{f.hora_saida}
                       {f.horas_trabalhadas != null && ` · ${f.horas_trabalhadas}h`}
                       {f.horas_extras > 0 && <span className="text-amber-600"> (+{f.horas_extras}h extra)</span>}
-                    </span>
+                    </div>
                   )}
-                  {f.observacao && <span className="text-xs text-muted-foreground italic">{f.observacao}</span>}
+                  {f.observacao && <p className="text-xs text-muted-foreground italic mt-0.5">{f.observacao}</p>}
+                </div>
+                <div className="flex gap-1 ml-2">
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onEdit(f)}><Pencil className="w-3.5 h-3.5" /></Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onDelete(f.id)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
                 </div>
               </div>
-              <div className="flex gap-1 ml-2">
-                <Button size="icon" variant="ghost" onClick={() => openEdit(f)}><Pencil className="w-4 h-4" /></Button>
-                <Button size="icon" variant="ghost" onClick={() => del(f.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
