@@ -61,6 +61,14 @@ export default function ColaboradoresCadastro() {
     setOpen(false); setEditing(null); setForm(emptyForm());
   };
 
+  const [excluindoId, setExcluindoId] = useState(null);
+
+  const excluirExFuncionario = async (id) => {
+    await base44.entities.Colaborador.delete(id);
+    qc.invalidateQueries({ queryKey: ['colaboradores'] });
+    setExcluindoId(null);
+  };
+
   const confirmarDesligamento = async () => {
     await base44.entities.Colaborador.update(desligandoId, {
       status_colaborador: 'desligado',
