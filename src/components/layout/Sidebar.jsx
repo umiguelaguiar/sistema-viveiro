@@ -35,7 +35,11 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   const { user } = useAuth();
   const role = user?.role || ROLES.USUARIO;
 
-  const visibleItems = allNavItems.filter(item => item.divider || canAccess(role, item.path));
+  const hasColaboradoresAccess = canAccess(role, '/colaboradores');
+  const visibleItems = allNavItems.filter(item => {
+    if (item.divider) return hasColaboradoresAccess;
+    return canAccess(role, item.path);
+  });
   const initials = (user?.full_name || user?.email || 'U')
     .split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
