@@ -60,7 +60,16 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
         {visibleItems.map((item, idx) => {
           if (item.divider) {
-            return <div key={`divider-${idx}`} className="my-2 border-t border-sidebar-border opacity-40" />;
+            return (
+              <div key={`divider-${idx}`} className="my-3 px-2">
+                <div className="border-t-2 border-sidebar-border opacity-60" />
+                {!collapsed && (
+                  <span className="block text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40 mt-2 px-1">
+                    Gestão de Pessoas
+                  </span>
+                )}
+              </div>
+            );
           }
           const isActive = location.pathname === item.path;
           return (
