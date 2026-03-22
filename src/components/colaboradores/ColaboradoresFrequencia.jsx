@@ -228,7 +228,8 @@ export default function ColaboradoresFrequencia() {
                 </>
               )}
               <div><Label>Observação</Label><Input value={form.observacao} onChange={e => sf('observacao', e.target.value)} placeholder="Opcional" /></div>
-              <Button className="w-full" onClick={save}>Salvar</Button>
+              {!form.colaborador_id && <p className="text-xs text-destructive">Selecione um colaborador para continuar.</p>}
+              <Button className="w-full" onClick={save} disabled={!form.colaborador_id}>Salvar</Button>
             </div>
           </DialogContent>
         </Dialog>
