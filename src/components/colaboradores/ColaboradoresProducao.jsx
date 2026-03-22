@@ -39,7 +39,7 @@ export default function ColaboradoresProducao() {
     qc.invalidateQueries({ queryKey: ['producoes-colab'] });
   };
 
-  const filtradas = producoes.filter(p => dataEstaNoPeriodo(p.data, periodoKey));
+  const filtradas = periodoKey === 'todos' ? producoes : producoes.filter(p => dataEstaNoPeriodo(p.data, periodoKey));
   const total = filtradas.reduce((s, p) => s + (p.quantidade || 0), 0);
 
   return (
