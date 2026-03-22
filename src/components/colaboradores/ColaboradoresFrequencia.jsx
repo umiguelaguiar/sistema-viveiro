@@ -71,8 +71,16 @@ export default function ColaboradoresFrequencia() {
 
   const { trabalhadas, extras } = (() => {
     if (skipHoras || form.status !== 'presente') return { trabalhadas: null, extras: null };
-    return calcHoras(form.hora_entrada, form.hora_saida, weekend, form.e_plantao);
+    return calcHoras(form.hora_entrada, form.hora_saida, form.e_plantao);
   })();
+
+  // Verificar duplicidade (mesmo colaborador, mesma data) — ignorar ao editar o próprio registro
+  const jaExisteNoDia = form.colaborador_id && form.data
+    ? frequencias.some(f => f.colaborador_id === form.colaborador_id && f.data === form.data && f.id !== editing?.id)
+    : false;
+
+  // Faltas disponíveis do colaborador selecionado para selecionar para pagar
+  const faltasDoColab = frequencias.filter(f => f.colaborador_id === form.colaborador_id && f.status === 'falta' && f.id !== editing?.id);
 
   const save = async () => {
     if (!form.colaborador_id) return;
