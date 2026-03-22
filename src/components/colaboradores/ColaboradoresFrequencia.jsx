@@ -83,7 +83,7 @@ export default function ColaboradoresFrequencia() {
   const faltasDoColab = frequencias.filter(f => f.colaborador_id === form.colaborador_id && f.status === 'falta' && f.id !== editing?.id);
 
   const save = async () => {
-    if (!form.colaborador_id) return;
+    if (!form.colaborador_id || jaExisteNoDia) return;
     const payload = {
       ...form,
       horas_trabalhadas: trabalhadas,
@@ -93,6 +93,10 @@ export default function ColaboradoresFrequencia() {
       await base44.entities.Frequencia.update(editing.id, payload);
     } else {
       await base44.entities.Frequencia.create(payload);
+    }
+    // Se estiver pagando uma falta, atualizar o status daquela falta para 'presente'
+    if (form.pagando_falta && form.data_falta_paga) {
+      await base44.entities.Frequencia.update(form.data_falta_paga, { status: 'presente', observacao: 'Falta compensada' });
     }
     qc.invalidateQueries({ queryKey: ['frequencias'] });
     setOpen(false); setEditing(null); setForm(emptyForm());
