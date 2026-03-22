@@ -74,9 +74,9 @@ export default function ColaboradoresFrequencia() {
   })();
 
   const save = async () => {
+    if (!form.colaborador_id) return;
     const payload = {
       ...form,
-      e_plantao: weekend ? true : form.e_plantao,
       horas_trabalhadas: trabalhadas,
       horas_extras: trabalhadas !== null ? extras : null,
     };
