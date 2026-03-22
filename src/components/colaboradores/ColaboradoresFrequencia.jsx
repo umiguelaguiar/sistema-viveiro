@@ -8,11 +8,18 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2, Clock } from 'lucide-react';
+import { getPeriodos, dataEstaNoPeriodo } from '@/lib/periodoColaboradores';
 
 const todayLocal = () => new Date().toLocaleDateString('en-CA');
 
-const STATUS_LABELS = { presente: 'Presente', falta: 'Falta', atestado: 'Atestado', folga: 'Folga', afastado: 'Afastado' };
-const STATUS_COLORS = { presente: 'default', falta: 'destructive', atestado: 'secondary', folga: 'outline', afastado: 'outline' };
+const STATUS_LABELS = { presente: 'Presente', falta: 'Falta', atestado: 'Atestado', folga: 'Folga' };
+const STATUS_COLORS = { presente: 'default', falta: 'destructive', atestado: 'secondary', folga: 'outline' };
+
+function isWeekendDate(dateStr) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.getDay() === 0 || d.getDay() === 6;
+}
 
 function calcHoras(entrada, saida, isWeekend, isPlantao) {
   if (!entrada || !saida) return { trabalhadas: null, extras: null };
@@ -21,51 +28,67 @@ function calcHoras(entrada, saida, isWeekend, isPlantao) {
   const totalMin = (sh * 60 + sm) - (eh * 60 + em);
   if (totalMin <= 0) return { trabalhadas: null, extras: null };
 
-  let trabalhadasMin = totalMin;
-  if (!isPlantao && !isWeekend) {
-    trabalhadasMin = totalMin - 60; // desconta 1h almoço
-  }
+  // Plantão ou fim de semana: sem desconto de almoço
+  const trabalhadasMin = (isWeekend || isPlantao) ? totalMin : totalMin - 60;
   const trabalhadas = Math.max(0, trabalhadasMin / 60);
+  // Fim de semana: tudo é extra. Dias úteis: extra = acima de 9h
   const jornadaBase = isWeekend ? 0 : 9;
   const extras = Math.max(0, trabalhadas - jornadaBase);
   return { trabalhadas: parseFloat(trabalhadas.toFixed(2)), extras: parseFloat(extras.toFixed(2)) };
 }
 
-function isWeekend(dateStr) {
-  const d = new Date(dateStr + 'T12:00:00');
-  return d.getDay() === 0 || d.getDay() === 6;
-}
+const emptyForm = (data = todayLocal()) => {
+  const weekend = isWeekendDate(data);
+  return {
+    colaborador_id: '', data,
+    status: 'presente',
+    hora_entrada: '07:00', hora_saida: '17:00',
+    e_plantao: weekend, // auto-plantão no fim de semana
+    tipo_hora_extra: 'banco_horas',
+    observacao: ''
+  };
+};
 
-const emptyForm = () => ({
-  colaborador_id: '', data: todayLocal(), status: 'presente',
-  hora_entrada: '07:00', hora_saida: '17:00',
-  e_plantao: false, tipo_hora_extra: 'banco_horas', observacao: ''
-});
+const periodos = getPeriodos(12);
 
 export default function ColaboradoresFrequencia() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm());
-  const [filtroData, setFiltroData] = useState(todayLocal());
+  const [periodoKey, setPeriodoKey] = useState(periodos[0]?.key || '');
+  const [filtroColab, setFiltroColab] = useState('todos');
 
   const { data: colaboradores = [] } = useQuery({ queryKey: ['colaboradores'], queryFn: () => base44.entities.Colaborador.list() });
-  const { data: frequencias = [] } = useQuery({ queryKey: ['frequencias'], queryFn: () => base44.entities.Frequencia.list('-data', 200) });
+  const { data: frequencias = [] } = useQuery({ queryKey: ['frequencias'], queryFn: () => base44.entities.Frequencia.list('-data', 1000) });
 
-  const sf = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  // Apenas ativos (não afastados)
+  const colabsAtivos = colaboradores.filter(c => (c.status_colaborador || 'ativo') === 'ativo');
+  const colabMap = Object.fromEntries(colaboradores.map(c => [c.id, c]));
+
+  const sf = (k, v) => setForm(f => {
+    const updated = { ...f, [k]: v };
+    // Se mudou a data, auto-set plantão no fim de semana
+    if (k === 'data') {
+      updated.e_plantao = isWeekendDate(v);
+    }
+    return updated;
+  });
+
+  const weekend = isWeekendDate(form.data);
+  const skipHoras = ['atestado', 'folga'].includes(form.status);
 
   const { trabalhadas, extras } = (() => {
-    const skip = ['atestado', 'folga', 'afastado'].includes(form.status);
-    if (skip) return { trabalhadas: null, extras: null };
-    return calcHoras(form.hora_entrada, form.hora_saida, isWeekend(form.data), form.e_plantao);
+    if (skipHoras || form.status !== 'presente') return { trabalhadas: null, extras: null };
+    return calcHoras(form.hora_entrada, form.hora_saida, weekend, form.e_plantao);
   })();
 
   const save = async () => {
-    const skip = ['atestado', 'folga', 'afastado'].includes(form.status);
     const payload = {
       ...form,
-      horas_trabalhadas: skip ? null : trabalhadas,
-      horas_extras: skip ? null : extras,
+      e_plantao: weekend ? true : form.e_plantao,
+      horas_trabalhadas: trabalhadas,
+      horas_extras: trabalhadas !== null ? extras : null,
     };
     if (editing) {
       await base44.entities.Frequencia.update(editing.id, payload);
@@ -83,20 +106,52 @@ export default function ColaboradoresFrequencia() {
 
   const openEdit = (f) => {
     setEditing(f);
-    setForm({ colaborador_id: f.colaborador_id, data: f.data, status: f.status, hora_entrada: f.hora_entrada || '07:00', hora_saida: f.hora_saida || '17:00', e_plantao: f.e_plantao || false, tipo_hora_extra: f.tipo_hora_extra || 'banco_horas', observacao: f.observacao || '' });
+    setForm({
+      colaborador_id: f.colaborador_id, data: f.data, status: f.status,
+      hora_entrada: f.hora_entrada || '07:00', hora_saida: f.hora_saida || '17:00',
+      e_plantao: f.e_plantao || false, tipo_hora_extra: f.tipo_hora_extra || 'banco_horas',
+      observacao: f.observacao || ''
+    });
     setOpen(true);
   };
 
-  const colabMap = Object.fromEntries(colaboradores.map(c => [c.id, c.nome]));
-  const filtradas = frequencias.filter(f => f.data === filtroData);
+  // Filtragem por período
+  const freqPeriodo = frequencias.filter(f => dataEstaNoPeriodo(f.data, periodoKey));
+  const freqFiltradas = filtroColab === 'todos' ? freqPeriodo : freqPeriodo.filter(f => f.colaborador_id === filtroColab);
+
+  // Ordenar por data desc, depois por nome
+  const freqOrdenadas = [...freqFiltradas].sort((a, b) => b.data.localeCompare(a.data));
+
+  // Totais do período filtrado
+  const presentes = freqFiltradas.filter(f => f.status === 'presente').length;
+  const faltas = freqFiltradas.filter(f => f.status === 'falta').length;
+  const atestados = freqFiltradas.filter(f => f.status === 'atestado').length;
+  const folgas = freqFiltradas.filter(f => f.status === 'folga').length;
 
   return (
     <div className="space-y-4 pt-4">
-      <div className="flex flex-wrap gap-3 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Label className="text-sm">Data:</Label>
-          <Input type="date" value={filtroData} onChange={e => setFiltroData(e.target.value)} className="w-40" />
+      {/* Filtros */}
+      <div className="flex flex-wrap gap-3 items-end justify-between">
+        <div className="flex flex-wrap gap-3">
+          <div>
+            <Label className="text-xs mb-1 block">Período</Label>
+            <Select value={periodoKey} onValueChange={setPeriodoKey}>
+              <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+              <SelectContent>{periodos.map(p => <SelectItem key={p.key} value={p.key}>{p.label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs mb-1 block">Colaborador</Label>
+            <Select value={filtroColab} onValueChange={setFiltroColab}>
+              <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {colaboradores.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditing(null); setForm(emptyForm()); } }}>
           <DialogTrigger asChild>
             <Button size="sm"><Plus className="w-4 h-4 mr-1" />Registrar Frequência</Button>
@@ -108,7 +163,7 @@ export default function ColaboradoresFrequencia() {
                 <Label>Colaborador</Label>
                 <Select value={form.colaborador_id} onValueChange={v => sf('colaborador_id', v)}>
                   <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                  <SelectContent>{colaboradores.filter(c => c.ativo !== false).map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
+                  <SelectContent>{colabsAtivos.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -126,15 +181,21 @@ export default function ColaboradoresFrequencia() {
 
               {form.status === 'presente' && (
                 <>
+                  {weekend && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-700 font-medium">
+                      ⚠️ Final de semana — registrado como plantão automaticamente. Todo trabalho conta como hora extra.
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-3">
                     <div><Label>Entrada</Label><Input type="time" value={form.hora_entrada} onChange={e => sf('hora_entrada', e.target.value)} /></div>
                     <div><Label>Saída</Label><Input type="time" value={form.hora_saida} onChange={e => sf('hora_saida', e.target.value)} /></div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <input type="checkbox" id="plantao" checked={form.e_plantao} onChange={e => sf('e_plantao', e.target.checked)} className="w-4 h-4" />
-                    <Label htmlFor="plantao" className="cursor-pointer">Plantão (sem desconto de almoço)</Label>
-                  </div>
-                  {isWeekend(form.data) && <p className="text-xs text-amber-600 font-medium">⚠️ Final de semana — todo trabalho conta como hora extra</p>}
+                  {!weekend && (
+                    <div className="flex items-center gap-3">
+                      <input type="checkbox" id="plantao" checked={form.e_plantao} onChange={e => sf('e_plantao', e.target.checked)} className="w-4 h-4" />
+                      <Label htmlFor="plantao" className="cursor-pointer">Plantão (sem desconto de almoço)</Label>
+                    </div>
+                  )}
                   {trabalhadas !== null && (
                     <div className="bg-muted rounded-lg p-3 text-sm space-y-1">
                       <div className="flex justify-between"><span>Horas trabalhadas:</span><strong>{trabalhadas}h</strong></div>
@@ -162,38 +223,47 @@ export default function ColaboradoresFrequencia() {
         </Dialog>
       </div>
 
-      {/* Summary row */}
-      <div className="flex flex-wrap gap-2">
-        {Object.entries(STATUS_LABELS).map(([k, l]) => {
-          const count = filtradas.filter(f => f.status === k).length;
-          if (count === 0) return null;
-          return <Badge key={k} variant={STATUS_COLORS[k]}>{l}: {count}</Badge>;
-        })}
-        {filtradas.length === 0 && <p className="text-sm text-muted-foreground">Nenhum registro para esta data.</p>}
+      {/* Resumo do período */}
+      <div className="flex flex-wrap gap-2 text-sm">
+        <Badge variant="default">Presentes: {presentes}</Badge>
+        <Badge variant="destructive">Faltas: {faltas}</Badge>
+        <Badge variant="secondary">Atestados: {atestados}</Badge>
+        <Badge variant="outline">Folgas: {folgas}</Badge>
       </div>
 
+      {/* Lista completa */}
       <div className="space-y-2">
-        {filtradas.map(f => (
-          <div key={f.id} className="flex items-center justify-between bg-card border border-border rounded-lg px-4 py-3">
-            <div>
-              <p className="font-medium text-sm">{colabMap[f.colaborador_id] || '—'}</p>
-              <div className="flex items-center gap-2 mt-0.5">
-                <Badge variant={STATUS_COLORS[f.status]} className="text-xs">{STATUS_LABELS[f.status]}</Badge>
-                {f.hora_entrada && f.hora_saida && (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock className="w-3 h-3" />{f.hora_entrada}–{f.hora_saida}
-                    {f.horas_trabalhadas && ` · ${f.horas_trabalhadas}h`}
-                    {f.horas_extras > 0 && <span className="text-amber-600"> (+{f.horas_extras}h extra)</span>}
-                  </span>
-                )}
+        {freqOrdenadas.length === 0 && <p className="text-sm text-muted-foreground">Nenhum registro neste período.</p>}
+        {freqOrdenadas.map(f => {
+          const colab = colabMap[f.colaborador_id];
+          const fw = isWeekendDate(f.data);
+          return (
+            <div key={f.id} className="flex items-center justify-between bg-card border border-border rounded-lg px-4 py-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-medium text-sm">{colab?.nome || '—'}</p>
+                  <span className="text-xs text-muted-foreground">{f.data?.split('-').reverse().join('/')}</span>
+                  {fw && <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">FDS</Badge>}
+                </div>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <Badge variant={STATUS_COLORS[f.status]} className="text-xs">{STATUS_LABELS[f.status]}</Badge>
+                  {f.hora_entrada && f.hora_saida && f.status === 'presente' && (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="w-3 h-3" />{f.hora_entrada}–{f.hora_saida}
+                      {f.horas_trabalhadas != null && ` · ${f.horas_trabalhadas}h`}
+                      {f.horas_extras > 0 && <span className="text-amber-600"> (+{f.horas_extras}h extra)</span>}
+                    </span>
+                  )}
+                  {f.observacao && <span className="text-xs text-muted-foreground italic">{f.observacao}</span>}
+                </div>
+              </div>
+              <div className="flex gap-1 ml-2">
+                <Button size="icon" variant="ghost" onClick={() => openEdit(f)}><Pencil className="w-4 h-4" /></Button>
+                <Button size="icon" variant="ghost" onClick={() => del(f.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
               </div>
             </div>
-            <div className="flex gap-1">
-              <Button size="icon" variant="ghost" onClick={() => openEdit(f)}><Pencil className="w-4 h-4" /></Button>
-              <Button size="icon" variant="ghost" onClick={() => del(f.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
