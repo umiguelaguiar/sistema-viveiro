@@ -126,31 +126,35 @@ export default function ColaboradoresBancoHoras() {
 
             {colabDetalhe === c.id && (
               <div className="border-t border-border px-4 py-3 space-y-2 bg-muted/20">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Registros com horas extras</p>
-                {detalhes.length === 0 && <p className="text-sm text-muted-foreground">Nenhum registro com horas extras neste período.</p>}
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Registros de banco de horas</p>
+                {detalhes.length === 0 && <p className="text-sm text-muted-foreground">Nenhum registro de banco de horas.</p>}
                 {detalhes.map(f => (
-                  <div key={f.id} className="flex items-center justify-between text-sm py-1 border-b border-border/50 last:border-0 gap-2">
+                  <div key={f.id} className={`flex items-center justify-between text-sm py-1.5 border-b border-border/50 last:border-0 gap-2 ${f.banco_horas_utilizado ? 'opacity-60' : ''}`}>
                     <span className="text-muted-foreground w-20">{f.data?.split('-').reverse().join('/')}</span>
-                    <span className="hidden sm:inline">{f.hora_entrada}–{f.hora_saida}</span>
-                    <span className="font-medium hidden sm:inline">{f.horas_trabalhadas}h trabalhadas</span>
+                    <span className="hidden sm:inline text-muted-foreground">{f.hora_entrada}–{f.hora_saida}</span>
                     <Badge
                       variant="outline"
-                      className={f.tipo_hora_extra === 'banco_horas' ? 'text-blue-600 border-blue-300' : 'text-green-600 border-green-300'}
+                      className={f.banco_horas_utilizado ? 'text-muted-foreground border-muted line-through' : 'text-blue-600 border-blue-300'}
                     >
-                      +{f.horas_extras}h · {f.tipo_hora_extra === 'banco_horas' ? 'Banco' : 'Pagamento'}
+                      +{f.horas_extras}h Banco
                     </Badge>
-                    {f.tipo_hora_extra === 'banco_horas' && (
-                      <div className="flex items-center gap-1.5 ml-2">
-                        <Checkbox
-                          id={`consumir-${f.id}`}
-                          disabled={consumindo[f.id]}
-                          onCheckedChange={(checked) => handleConsumirDia(f, checked)}
-                        />
-                        <label htmlFor={`consumir-${f.id}`} className="text-xs text-muted-foreground cursor-pointer select-none whitespace-nowrap">
-                          Dia utilizado
-                        </label>
-                      </div>
+                    {f.banco_horas_utilizado && f.data_utilizacao_banco && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-green-500" />
+                        Utilizado em {f.data_utilizacao_banco.split('-').reverse().join('/')}
+                      </span>
                     )}
+                    <div className="flex items-center gap-1.5 ml-auto">
+                      <Checkbox
+                        id={`consumir-${f.id}`}
+                        checked={!!f.banco_horas_utilizado}
+                        disabled={consumindo[f.id]}
+                        onCheckedChange={(checked) => handleConsumirDia(f, checked)}
+                      />
+                      <label htmlFor={`consumir-${f.id}`} className="text-xs text-muted-foreground cursor-pointer select-none whitespace-nowrap">
+                        {f.banco_horas_utilizado ? 'Utilizado' : 'Marcar como utilizado'}
+                      </label>
+                    </div>
                   </div>
                 ))}
               </div>
