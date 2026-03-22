@@ -21,19 +21,18 @@ function isWeekendDate(dateStr) {
   return d.getDay() === 0 || d.getDay() === 6;
 }
 
-function calcHoras(entrada, saida, isWeekend, isPlantao) {
+function calcHoras(entrada, saida, isPlantao) {
   if (!entrada || !saida) return { trabalhadas: null, extras: null };
   const [eh, em] = entrada.split(':').map(Number);
   const [sh, sm] = saida.split(':').map(Number);
   const totalMin = (sh * 60 + sm) - (eh * 60 + em);
   if (totalMin <= 0) return { trabalhadas: null, extras: null };
 
-  // Plantão ou fim de semana: sem desconto de almoço
-  const trabalhadasMin = (isWeekend || isPlantao) ? totalMin : totalMin - 60;
+  // Plantão: sem desconto de almoço; normal: desconta 1h
+  const trabalhadasMin = isPlantao ? totalMin : totalMin - 60;
   const trabalhadas = Math.max(0, trabalhadasMin / 60);
-  // Fim de semana: tudo é extra. Dias úteis: extra = acima de 9h
-  const jornadaBase = isWeekend ? 0 : 9;
-  const extras = Math.max(0, trabalhadas - jornadaBase);
+  // Hora extra só conta se for plantão (acima de 9h de plantão)
+  const extras = isPlantao ? Math.max(0, trabalhadas - 9) : 0;
   return { trabalhadas: parseFloat(trabalhadas.toFixed(2)), extras: parseFloat(extras.toFixed(2)) };
 }
 
