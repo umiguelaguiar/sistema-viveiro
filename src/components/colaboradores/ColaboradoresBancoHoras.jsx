@@ -35,7 +35,6 @@ export default function ColaboradoresBancoHoras() {
       const extrasPagamento = cfPagamento.filter(f => f.tipo_hora_extra === 'pagamento').reduce((s, f) => s + (f.horas_extras || 0), 0);
       const totalTrabalhadas = cf.reduce((s, f) => s + (f.horas_trabalhadas || 0), 0);
 
-      // Dias trabalhados vs esperados (dias úteis no período)
       const diasPresente = cf.length;
 
       return { ...c, totalExtras, extrasBanco, extrasPagamento, totalTrabalhadas, diasPresente };
