@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { getPeriodos, dataEstaNoPeriodo, formatPeriodoLabel } from '@/lib/periodoColaboradores';
+import { getPeriodos, dataEstaNoPeriodo, formatPeriodoLabel, getPeriodoDatasLabel } from '@/lib/periodoColaboradores';
 
 const ATIVIDADES = { tubete: 'Tubete', selecao: 'Seleção', irrigacao: 'Irrigação', expedicao: 'Expedição' };
 const periodos = getPeriodos(12);
