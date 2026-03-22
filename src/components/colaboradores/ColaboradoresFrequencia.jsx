@@ -130,6 +130,23 @@ export default function ColaboradoresFrequencia() {
   const atestados = freqFiltradas.filter(f => f.status === 'atestado').length;
   const folgas = freqFiltradas.filter(f => f.status === 'folga').length;
 
+  // Agrupar por colaborador
+  const grupoPorColab = {};
+  freqFiltradas.forEach(f => {
+    if (!grupoPorColab[f.colaborador_id]) grupoPorColab[f.colaborador_id] = [];
+    grupoPorColab[f.colaborador_id].push(f);
+  });
+  // Ordenar registros de cada colaborador por data desc
+  Object.keys(grupoPorColab).forEach(id => {
+    grupoPorColab[id].sort((a, b) => b.data.localeCompare(a.data));
+  });
+  // Ordenar colaboradores por nome
+  const colaboradoresComFreq = Object.keys(grupoPorColab).sort((a, b) => {
+    const na = colabMap[a]?.nome || '';
+    const nb = colabMap[b]?.nome || '';
+    return na.localeCompare(nb);
+  });
+
   return (
     <div className="space-y-4 pt-4">
       {/* Filtros */}
