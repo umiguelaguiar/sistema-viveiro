@@ -147,6 +147,7 @@ export default function Admin() {
             { role: ROLES.VISITANTE, desc: 'Sem acesso. Aguardando aprovação do administrador' },
             { role: ROLES.USUARIO, desc: 'Dashboard, Estoque, Relatório, Porcentagem, Previsão, Insumos' },
             { role: ROLES.SUPERVISOR, desc: 'Todas as abas operacionais (exceto área administrativa)' },
+            { role: ROLES.GERENTE, desc: 'Todas as abas operacionais (exceto área administrativa)' },
             { role: ROLES.ADMIN, desc: 'Acesso total, incluindo esta área administrativa' },
           ].map(({ role, desc }) => (
             <div key={role} className="flex items-start gap-2">
