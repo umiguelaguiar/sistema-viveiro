@@ -4,18 +4,22 @@ export const ROLES = {
   VISITANTE: 'visitante',
   USUARIO: 'usuario',
   SUPERVISOR: 'supervisor',
+  GERENTE: 'gerente',
   ADMIN: 'admin',
 };
+
+const SUPERVISOR_ROUTES = [
+  '/', '/estoque', '/relatorio', '/porcentagem', '/previsao', '/insumos',
+  '/producao', '/transferencia', '/expedicao', '/perdas', '/clones',
+  '/lotes', '/especies', '/movimentacao-insumos', '/backup', '/colaboradores',
+];
 
 // Routes accessible per role
 export const ROLE_ROUTES = {
   [ROLES.VISITANTE]: [],
   [ROLES.USUARIO]: ['/', '/estoque', '/relatorio', '/porcentagem', '/previsao', '/insumos'],
-  [ROLES.SUPERVISOR]: [
-    '/', '/estoque', '/relatorio', '/porcentagem', '/previsao', '/insumos',
-    '/producao', '/transferencia', '/expedicao', '/perdas', '/clones',
-    '/lotes', '/especies', '/movimentacao-insumos', '/backup', '/colaboradores',
-  ],
+  [ROLES.SUPERVISOR]: SUPERVISOR_ROUTES,
+  [ROLES.GERENTE]: SUPERVISOR_ROUTES,
   [ROLES.ADMIN]: 'all', // all routes including /admin
 };
 
