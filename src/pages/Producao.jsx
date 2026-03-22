@@ -32,7 +32,7 @@ export default function Producao() {
     queryClient.invalidateQueries({ queryKey: ['producoes'] });
     queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
     queryClient.invalidateQueries({ queryKey: ['perdas'] });
-    setForm({ lote_id: '', clone_id: '', quantidade: '', setor_id: '', data: todayLocal() });
+    setForm({ lote_id: '', clone_id: '', quantidade: '', bandejas: '', setor_id: '', data: todayLocal() });
     setOpen(false);
   };
 
