@@ -26,7 +26,8 @@ export default function ColaboradoresBancoHoras() {
     .map(c => {
       const cf = freqPeriodo.filter(f => f.colaborador_id === c.id && f.status === 'presente');
       const totalExtras = cf.reduce((s, f) => s + (f.horas_extras || 0), 0);
-      const extrasBanco = cf.filter(f => f.tipo_hora_extra === 'banco_horas').reduce((s, f) => s + (f.horas_extras || 0), 0);
+      // Só conta banco de horas disponível (não utilizado)
+      const extrasBanco = cf.filter(f => f.tipo_hora_extra === 'banco_horas' && !f.banco_horas_utilizado).reduce((s, f) => s + (f.horas_extras || 0), 0);
       const extrasPagamento = cf.filter(f => f.tipo_hora_extra === 'pagamento').reduce((s, f) => s + (f.horas_extras || 0), 0);
       const totalTrabalhadas = cf.reduce((s, f) => s + (f.horas_trabalhadas || 0), 0);
 
