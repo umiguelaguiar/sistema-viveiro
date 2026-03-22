@@ -42,9 +42,26 @@ export default function ColaboradoresBancoHoras() {
 
   // Detalhe por colaborador: lista de registros com horas extras
   const [colabDetalhe, setColabDetalhe] = useState(null);
+  const [consumindo, setConsumindo] = useState({});
+  const queryClient = useQueryClient();
+
   const detalhes = colabDetalhe
     ? freqPeriodo.filter(f => f.colaborador_id === colabDetalhe && f.horas_extras > 0)
     : [];
+
+  const handleConsumirDia = async (freq, checked) => {
+    setConsumindo(prev => ({ ...prev, [freq.id]: true }));
+    if (checked) {
+      await base44.entities.Frequencia.update(freq.id, {
+        horas_extras: 0,
+        tipo_hora_extra: null
+      });
+    } else {
+      // Não faz nada — não é possível desfazer sem os dados originais
+    }
+    queryClient.invalidateQueries({ queryKey: ['frequencias'] });
+    setConsumindo(prev => ({ ...prev, [freq.id]: false }));
+  };
 
   return (
     <div className="space-y-6 pt-4">
