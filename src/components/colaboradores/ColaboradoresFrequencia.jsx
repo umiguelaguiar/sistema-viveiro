@@ -360,6 +360,7 @@ function ColabCard({ colab, registros, onEdit, onDelete }) {
                       {f.horas_extras > 0 && <span className="text-amber-600"> (+{f.horas_extras}h extra)</span>}
                     </div>
                   )}
+                  {f.pagando_falta && <Badge variant="outline" className="text-xs text-blue-600 border-blue-300 mt-0.5">Compensou falta</Badge>}
                   {f.observacao && <p className="text-xs text-muted-foreground italic mt-0.5">{f.observacao}</p>}
                 </div>
                 <div className="flex gap-1 ml-2">
