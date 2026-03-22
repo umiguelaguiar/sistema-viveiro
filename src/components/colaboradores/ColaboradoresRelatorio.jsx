@@ -19,7 +19,7 @@ export default function ColaboradoresRelatorio() {
   const freqPeriodo = frequencias.filter(f => dataEstaNoPeriodo(f.data, periodoKey));
   const prodPeriodo = producoes.filter(p => dataEstaNoPeriodo(p.data, periodoKey));
 
-  const colabAtivos = colaboradores.filter(c => (c.status_colaborador || 'ativo') !== 'inativo');
+  const colabAtivos = colaboradores.filter(c => (c.status_colaborador || 'ativo') !== 'inativo' && (c.status_colaborador || 'ativo') !== 'desligado');
 
   return (
     <div className="space-y-6 pt-4">
