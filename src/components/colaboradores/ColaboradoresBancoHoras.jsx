@@ -16,7 +16,9 @@ export default function ColaboradoresBancoHoras() {
   const { data: colaboradores = [] } = useQuery({ queryKey: ['colaboradores'], queryFn: () => base44.entities.Colaborador.list() });
   const { data: frequencias = [] } = useQuery({ queryKey: ['frequencias'], queryFn: () => base44.entities.Frequencia.list('-data', 1000) });
 
-  const freqPeriodo = frequencias.filter(f => dataEstaNoPeriodo(f.data, periodoKey));
+  const freqPeriodo = periodoKey === 'todos'
+    ? frequencias
+    : frequencias.filter(f => dataEstaNoPeriodo(f.data, periodoKey));
 
   const colabsComHoras = colaboradores
     .filter(c => (c.status_colaborador || 'ativo') !== 'inativo')
