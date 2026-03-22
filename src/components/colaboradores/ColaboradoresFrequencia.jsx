@@ -116,7 +116,9 @@ export default function ColaboradoresFrequencia() {
   };
 
   // Filtragem por período
-  const freqPeriodo = frequencias.filter(f => dataEstaNoPeriodo(f.data, periodoKey));
+  const freqPeriodo = periodoKey === 'todos'
+    ? frequencias
+    : frequencias.filter(f => dataEstaNoPeriodo(f.data, periodoKey));
   const freqFiltradas = filtroColab === 'todos' ? freqPeriodo : freqPeriodo.filter(f => f.colaborador_id === filtroColab);
 
   // Ordenar por data desc, depois por nome
