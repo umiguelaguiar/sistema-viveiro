@@ -31,8 +31,8 @@ function calcHoras(entrada, saida, isPlantao) {
   // Plantão: sem desconto de almoço; normal: desconta 1h
   const trabalhadasMin = isPlantao ? totalMin : totalMin - 60;
   const trabalhadas = Math.max(0, trabalhadasMin / 60);
-  // Hora extra só conta se for plantão (acima de 9h de plantão)
-  const extras = isPlantao ? Math.max(0, trabalhadas - 9) : 0;
+  // Plantão = sempre 8h extras fixas; normal = sem extras
+  const extras = isPlantao ? 8 : 0;
   return { trabalhadas: parseFloat(trabalhadas.toFixed(2)), extras: parseFloat(extras.toFixed(2)) };
 }
 
