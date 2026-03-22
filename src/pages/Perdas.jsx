@@ -37,7 +37,7 @@ export default function Perdas() {
     const qty = Number(form.quantidade);
     await base44.entities.Perda.create({ ...form, quantidade: qty });
     queryClient.invalidateQueries({ queryKey: ['perdas'] });
-    setForm({ lote_id: '', clone_id: '', setor_id: '', quantidade: '', motivo: '', data: new Date().toISOString().split('T')[0] });
+    setForm({ lote_id: '', clone_id: '', setor_id: '', quantidade: '', motivo: '', data: todayLocal() });
     setOpen(false);
   };
 

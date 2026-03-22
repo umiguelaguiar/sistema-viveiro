@@ -52,7 +52,7 @@ export default function Expedicao() {
     queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
     queryClient.invalidateQueries({ queryKey: ['producoes'] });
     queryClient.invalidateQueries({ queryKey: ['perdas'] });
-    setForm({ lote_id: '', clone_id: '', quantidade: '', data: new Date().toISOString().split('T')[0] });
+    setForm({ lote_id: '', clone_id: '', quantidade: '', data: todayLocal() });
     setOpen(false);
     toast.success(`Expedição registrada a partir de ${setorExpedicao.nome}`);
   };

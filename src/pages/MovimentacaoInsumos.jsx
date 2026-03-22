@@ -35,7 +35,7 @@ export default function MovimentacaoInsumos() {
 
     await base44.entities.MovimentacaoInsumo.create(payload);
     queryClient.invalidateQueries({ queryKey: ['movimentacoes_insumos'] });
-    setForm({ insumo_id: '', tipo: '', quantidade: '', data: new Date().toISOString().split('T')[0], lote_id: '', clone_id: '' });
+    setForm({ insumo_id: '', tipo: '', quantidade: '', data: todayLocal(), lote_id: '', clone_id: '' });
     setOpen(false);
   };
 
