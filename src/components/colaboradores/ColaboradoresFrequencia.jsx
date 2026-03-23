@@ -60,8 +60,8 @@ export default function ColaboradoresFrequencia() {
   const { data: colaboradores = [] } = useQuery({ queryKey: ['colaboradores'], queryFn: () => base44.entities.Colaborador.list() });
   const { data: frequencias = [] } = useQuery({ queryKey: ['frequencias'], queryFn: () => base44.entities.Frequencia.list('-data', 1000) });
 
-  // Apenas ativos (não afastados)
-  const colabsAtivos = colaboradores.filter(c => (c.status_colaborador || 'ativo') === 'ativo');
+  // Apenas ativos (não desligados)
+  const colabsAtivos = colaboradores.filter(c => (c.status_colaborador || 'ativo') !== 'desligado');
   const colabMap = Object.fromEntries(colaboradores.map(c => [c.id, c]));
 
   const sf = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -151,8 +151,10 @@ export default function ColaboradoresFrequencia() {
   Object.keys(grupoPorColab).forEach(id => {
     grupoPorColab[id].sort((a, b) => b.data.localeCompare(a.data));
   });
-  // Ordenar colaboradores por nome
-  const colaboradoresComFreq = Object.keys(grupoPorColab).sort((a, b) => {
+  // Ordenar colaboradores por nome, excluindo desligados
+  const colaboradoresComFreq = Object.keys(grupoPorColab)
+    .filter(id => (colabMap[id]?.status_colaborador || 'ativo') !== 'desligado')
+    .sort((a, b) => {
     const na = colabMap[a]?.nome || '';
     const nb = colabMap[b]?.nome || '';
     return na.localeCompare(nb);
