@@ -170,8 +170,8 @@ export default function Previsao() {
               <p className="text-xs text-muted-foreground">mudas / dia</p>
             </div>
           </div>
-          {meta && <div className={`mt-2 text-xs font-medium ${previsaoDiaria >= (Number(meta) / 365 * taxaPegamento) ? 'text-green-600' : 'text-amber-600'}`}>
-            Meta diária: {Math.round(Number(meta) / 365 * taxaPegamento).toLocaleString('pt-BR')} — {previsaoDiaria >= (Number(meta) / 365 * taxaPegamento) ? '✅ Atingida' : '⚠️ Abaixo'}
+          {meta && <div className={`mt-2 text-xs font-medium ${previsaoDiaria >= (Number(meta) / 252 * taxaPegamento) ? 'text-green-600' : 'text-amber-600'}`}>
+            Meta diária: {Math.round(Number(meta) / 252 * taxaPegamento).toLocaleString('pt-BR')} — {previsaoDiaria >= (Number(meta) / 252 * taxaPegamento) ? '✅ Atingida' : '⚠️ Abaixo'}
           </div>}
         </Card>
 
@@ -186,8 +186,8 @@ export default function Previsao() {
               <p className="text-xs text-muted-foreground">mudas / 5 dias úteis</p>
             </div>
           </div>
-          {meta && <div className={`mt-2 text-xs font-medium ${previsaoSemanal >= (Number(meta) / 52 * taxaPegamento) ? 'text-green-600' : 'text-amber-600'}`}>
-            Meta semanal: {Math.round(Number(meta) / 52 * taxaPegamento).toLocaleString('pt-BR')} — {previsaoSemanal >= (Number(meta) / 52 * taxaPegamento) ? '✅ Atingida' : '⚠️ Abaixo'}
+          {meta && <div className={`mt-2 text-xs font-medium ${previsaoSemanal >= (Number(meta) / 252 * 5 * taxaPegamento) ? 'text-green-600' : 'text-amber-600'}`}>
+            Meta semanal: {Math.round(Number(meta) / 252 * 5 * taxaPegamento).toLocaleString('pt-BR')} — {previsaoSemanal >= (Number(meta) / 252 * 5 * taxaPegamento) ? '✅ Atingida' : '⚠️ Abaixo'}
           </div>}
         </Card>
 
@@ -202,8 +202,8 @@ export default function Previsao() {
               <p className="text-xs text-muted-foreground">mudas / ~22 dias úteis</p>
             </div>
           </div>
-          {meta && <div className={`mt-2 text-xs font-medium ${previsaoMensal >= (Number(meta) / 12 * taxaPegamento) ? 'text-green-600' : 'text-amber-600'}`}>
-            Meta mensal: {Math.round(Number(meta) / 12 * taxaPegamento).toLocaleString('pt-BR')} — {previsaoMensal >= (Number(meta) / 12 * taxaPegamento) ? '✅ Atingida' : '⚠️ Abaixo'}
+          {meta && <div className={`mt-2 text-xs font-medium ${previsaoMensal >= (Number(meta) / 252 * 22 * taxaPegamento) ? 'text-green-600' : 'text-amber-600'}`}>
+            Meta mensal: {Math.round(Number(meta) / 252 * 22 * taxaPegamento).toLocaleString('pt-BR')} — {previsaoMensal >= (Number(meta) / 252 * 22 * taxaPegamento) ? '✅ Atingida' : '⚠️ Abaixo'}
           </div>}
         </Card>
 
