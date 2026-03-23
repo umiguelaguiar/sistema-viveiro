@@ -64,8 +64,12 @@ export default function ColaboradoresCadastro() {
   const [excluindoId, setExcluindoId] = useState(null);
 
   const excluirExFuncionario = async (id) => {
+    // Deletar todas as frequências do colaborador
+    const freqsDoColab = frequencias.filter(f => f.colaborador_id === id);
+    await Promise.all(freqsDoColab.map(f => base44.entities.Frequencia.delete(f.id)));
     await base44.entities.Colaborador.delete(id);
     qc.invalidateQueries({ queryKey: ['colaboradores'] });
+    qc.invalidateQueries({ queryKey: ['frequencias'] });
     setExcluindoId(null);
   };
 
