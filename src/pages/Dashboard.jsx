@@ -21,6 +21,13 @@ const COLORS = ['hsl(152, 55%, 28%)', 'hsl(36, 80%, 50%)', 'hsl(200, 60%, 45%)',
 
 function getMonthOptions(items) {
   const months = new Set();
+  // Sempre inclui os últimos 12 meses
+  const hoje = new Date();
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+    months.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+  // Também inclui quaisquer meses mais antigos que tenham dados
   items.forEach(i => { if (i.data) months.add(i.data.substring(0, 7)); });
   return Array.from(months).sort().reverse();
 }
