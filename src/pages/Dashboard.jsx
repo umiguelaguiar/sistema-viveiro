@@ -107,8 +107,12 @@ export default function Dashboard() {
   const eficiencia = totalProducao > 0 ? (((totalProducao - totalPerdas) / totalProducao) * 100).toFixed(1) : '0.0';
   const mortalidade = totalProducao > 0 ? ((totalPerdas / totalProducao) * 100).toFixed(1) : '0.0';
 
-  // Conferência automática
-  const diferenca = totalProducao - totalPerdas - totalExpedicao - totalEstoque;
+  // Conferência automática — só faz sentido sem filtro de mês, pois estoque é acumulado
+  const conferenciaSemFiltro = mesFiltro === 'todos';
+  const totalProducaoGeral = producoesPStock.reduce((s, p) => s + (p.quantidade || 0), 0);
+  const totalPerdasGeral = perdasPStock.reduce((s, p) => s + (p.quantidade || 0), 0);
+  const totalExpedicaoGeral = movPStock.filter(m => m.tipo === 'expedicao').reduce((s, m) => s + (m.quantidade || 0), 0);
+  const diferenca = totalProducaoGeral - totalPerdasGeral - totalExpedicaoGeral - totalEstoque;
   const conferenciOk = Math.abs(diferenca) < 1;
 
   // Alertas
@@ -117,7 +121,7 @@ export default function Dashboard() {
   const alertas = [];
   if (setorSombra && stockSombra === 0) alertas.push({ tipo: 'danger', msg: '🚨 Sem mudas na Casa de Sombra' });
   if (parseFloat(mortalidade) > 8) alertas.push({ tipo: 'warning', msg: `⚠️ Alta mortalidade: ${mortalidade}%` });
-  if (!conferenciOk) alertas.push({ tipo: 'warning', msg: `⚠️ Conferência: diferença de ${diferenca.toLocaleString('pt-BR')} mudas` });
+  if (conferenciaSemFiltro && !conferenciOk) alertas.push({ tipo: 'warning', msg: `⚠️ Conferência: diferença de ${diferenca.toLocaleString('pt-BR')} mudas` });
 
   // Gráfico evolução 6 meses
   const evolucao = useMemo(() => {
@@ -202,7 +206,9 @@ export default function Dashboard() {
       {/* Conferência */}
       <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border text-sm font-medium ${conferenciOk ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
         {conferenciOk ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
-        {conferenciOk
+        {!conferenciaSemFiltro
+          ? 'ℹ️ Conferência disponível apenas sem filtro de mês (estoque é acumulado)'
+          : conferenciOk
           ? '✅ Conferência automática: estoque balanceado'
           : `⚠️ Conferência: Diferença de ${Math.abs(diferenca).toLocaleString('pt-BR')} mudas (Produção - Perdas - Expedição - Estoque ≠ 0)`}
       </div>
@@ -326,8 +332,9 @@ export default function Dashboard() {
       <Card className="p-5">
         <h3 className="text-sm font-semibold mb-3 text-foreground">🔮 Previsão (Média Móvel)</h3>
         {(() => {
-          const diasComProd = producoes.filter(p => p.data).length;
-          const mediaDiaria = diasComProd > 0 ? totalProducao / Math.max(diasComProd, 1) : 0;
+          // Média por dias distintos com registro de produção
+          const diasDistintos = new Set(producoesPStock.filter(p => p.data).map(p => p.data.substring(0, 10))).size;
+          const mediaDiaria = diasDistintos > 0 ? (producoesPStock.reduce((s, p) => s + (p.quantidade || 0), 0)) / diasDistintos : 0;
           const setorRust = setores.find(s => s.nome?.toLowerCase().includes('rustif'));
           const estoqueRust = setorRust ? (stockBySetor.find(s => s.setor.id === setorRust.id)?.total || 0) : 0;
           return (
