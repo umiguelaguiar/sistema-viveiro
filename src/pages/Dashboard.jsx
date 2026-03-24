@@ -176,8 +176,10 @@ export default function Dashboard() {
             <SelectTrigger className="w-40 sm:w-44"><SelectValue placeholder="Mês" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos os meses</SelectItem>
-              {monthOptions.map(m => (
-                <SelectItem key={m} value={m}>{format(new Date(m + '-01'), 'MMM yyyy', { locale: ptBR })}</SelectItem>
+              {monthOptions.map(m => {
+                const [y, mo] = m.split('-').map(Number);
+                return <SelectItem key={m} value={m}>{format(new Date(y, mo - 1, 1), 'MMM yyyy', { locale: ptBR })}</SelectItem>;
+              }
               ))}
             </SelectContent>
           </Select>
