@@ -15,7 +15,7 @@ export default function Perfil() {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [name, setName] = useState(user?.full_name || '');
+  const [name, setName] = useState(user?.display_name || user?.full_name || '');
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -36,7 +36,7 @@ export default function Perfil() {
   const handleSaveName = async () => {
     setSaving(true);
     try {
-      await base44.auth.updateMe({ full_name: name });
+      await base44.auth.updateMe({ display_name: name });
       toast({ title: 'Nome atualizado com sucesso!' });
       window.location.reload();
     } catch {
@@ -47,7 +47,7 @@ export default function Perfil() {
   };
 
   const avatarUrl = user?.avatar_url;
-  const initials = (user?.full_name || user?.email || 'U')
+  const initials = (user?.display_name || user?.full_name || user?.email || 'U')
     .split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
   return (
@@ -75,7 +75,7 @@ export default function Perfil() {
               </label>
             </div>
             <div>
-              <p className="font-semibold">{user?.full_name || 'Sem nome'}</p>
+              <p className="font-semibold">{user?.display_name || user?.full_name || 'Sem nome'}</p>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
               <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(user?.role)}`}>
                 {getRoleLabel(user?.role)}

@@ -40,7 +40,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     if (item.divider) return hasColaboradoresAccess;
     return canAccess(role, item.path);
   });
-  const initials = (user?.full_name || user?.email || 'U')
+  const initials = (user?.display_name || user?.full_name || user?.email || 'U')
     .split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
   return (
@@ -124,7 +124,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         )}
         {!collapsed && (
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium truncate text-sidebar-foreground">{user?.full_name || user?.email}</p>
+            <p className="text-xs font-medium truncate text-sidebar-foreground">{user?.display_name || user?.full_name || user?.email}</p>
             <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${getRoleBadgeColor(role)}`}>
               {getRoleLabel(role)}
             </span>
