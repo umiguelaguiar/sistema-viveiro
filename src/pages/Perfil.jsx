@@ -38,6 +38,7 @@ export default function Perfil() {
     try {
       await base44.auth.updateMe({ full_name: name });
       toast({ title: 'Nome atualizado com sucesso!' });
+      window.location.reload();
     } catch {
       toast({ title: 'Erro ao salvar nome', variant: 'destructive' });
     } finally {
