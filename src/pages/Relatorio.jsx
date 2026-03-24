@@ -149,12 +149,27 @@ export default function Relatorio() {
   const exportarPDF = async () => {
     setExportando(true);
     try {
-      // Carregar logo como base64
+      // Carregar logo e remover fundo branco via canvas
       let logoBase64 = null;
       try {
-        const resp = await fetch('https://media.base44.com/images/public/69bde243dc485779f5218ed4/eceff1601_LogoViveiro.jpeg');
-        const blob = await resp.blob();
-        logoBase64 = await new Promise(res => { const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(blob); });
+        const img = await new Promise((res, rej) => {
+          const i = new Image();
+          i.crossOrigin = 'anonymous';
+          i.onload = () => res(i);
+          i.onerror = rej;
+          i.src = 'https://media.base44.com/images/public/69bde243dc485779f5218ed4/eceff1601_LogoViveiro.jpeg';
+        });
+        const cnv = document.createElement('canvas');
+        cnv.width = img.width; cnv.height = img.height;
+        const ctx = cnv.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, cnv.width, cnv.height);
+        const d = imageData.data;
+        for (let i = 0; i < d.length; i += 4) {
+          if (d[i] > 220 && d[i+1] > 220 && d[i+2] > 220) d[i+3] = 0;
+        }
+        ctx.putImageData(imageData, 0, 0);
+        logoBase64 = cnv.toDataURL('image/png');
       } catch {}
 
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
