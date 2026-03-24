@@ -147,21 +147,197 @@ export default function Relatorio() {
   }), []);
 
   const exportarPDF = async () => {
-    if (!contentRef.current) return;
     setExportando(true);
     try {
-      const canvas = await html2canvas(contentRef.current, { scale: 1.5, useCORS: true, backgroundColor: '#ffffff' });
-      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const pdfW = pdf.internal.pageSize.getWidth();
-      const pdfH = pdf.internal.pageSize.getHeight();
-      const imgH = (canvas.height * pdfW) / canvas.width;
-      let posY = 0, remaining = imgH;
-      while (remaining > 0) {
-        pdf.addImage(imgData, 'PNG', 0, posY > 0 ? -(imgH - remaining) : 0, pdfW, imgH);
-        remaining -= pdfH;
-        if (remaining > 0) { pdf.addPage(); posY += pdfH; }
+      const pw = 210; // A4 width
+      const margin = 15;
+      const contentW = pw - margin * 2;
+      let y = 0;
+
+      const addPage = () => { pdf.addPage(); y = margin; };
+      const checkY = (needed = 10) => { if (y + needed > 280) addPage(); };
+
+      // --- Cores ---
+      const cor = { verde: [39, 121, 71], cinzaEsc: [40, 40, 40], cinzaMed: [90, 90, 90], cinzaClaro: [200, 200, 200], bg: [245, 248, 245], branco: [255, 255, 255], amarelo: [180, 120, 0], vermelho: [180, 40, 40] };
+
+      // --- Cabeçalho ---
+      pdf.setFillColor(...cor.verde);
+      pdf.rect(0, 0, pw, 28, 'F');
+      pdf.setTextColor(...cor.branco);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(18);
+      pdf.text('Viveiro Metalsider', margin, 11);
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      const mesLabel = mesesDisponiveis.find(m2 => m2.value === mes)?.label || mes;
+      pdf.text(`Relatório Gerencial — ${mesLabel}`, margin, 18);
+      pdf.setFontSize(8);
+      pdf.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, pw - margin, 18, { align: 'right' });
+      y = 36;
+
+      // --- Seção helper ---
+      const secao = (titulo) => {
+        checkY(14);
+        pdf.setFillColor(...cor.verde);
+        pdf.rect(margin, y, contentW, 7, 'F');
+        pdf.setTextColor(...cor.branco);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(9);
+        pdf.text(titulo.toUpperCase(), margin + 3, y + 5);
+        y += 10;
+      };
+
+      const linha = (label, valor, destaque = false) => {
+        checkY(7);
+        pdf.setFillColor(destaque ? 242 : 255, destaque ? 248 : 255, destaque ? 242 : 255);
+        pdf.rect(margin, y, contentW, 6, 'F');
+        pdf.setDrawColor(...cor.cinzaClaro);
+        pdf.rect(margin, y, contentW, 6, 'S');
+        pdf.setTextColor(...cor.cinzaEsc);
+        pdf.setFont('helvetica', destaque ? 'bold' : 'normal');
+        pdf.setFontSize(8.5);
+        pdf.text(label, margin + 3, y + 4.2);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(String(valor), pw - margin - 3, y + 4.2, { align: 'right' });
+        y += 6;
+      };
+
+      const tabela = (headers, rows) => {
+        checkY(10);
+        const colW = contentW / headers.length;
+        // Cabeçalho tabela
+        pdf.setFillColor(...cor.cinzaEsc);
+        pdf.rect(margin, y, contentW, 7, 'F');
+        pdf.setTextColor(...cor.branco);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8);
+        headers.forEach((h, i) => pdf.text(h, margin + colW * i + 2, y + 5));
+        y += 7;
+        // Linhas
+        rows.forEach((row, ri) => {
+          checkY(6);
+          pdf.setFillColor(ri % 2 === 0 ? 250 : 245, ri % 2 === 0 ? 250 : 248, ri % 2 === 0 ? 250 : 245);
+          pdf.rect(margin, y, contentW, 6, 'F');
+          pdf.setDrawColor(...cor.cinzaClaro);
+          pdf.rect(margin, y, contentW, 6, 'S');
+          pdf.setTextColor(...cor.cinzaEsc);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(7.5);
+          row.forEach((cell, ci) => {
+            const txt = String(cell ?? '-');
+            pdf.text(txt, margin + colW * ci + 2, y + 4.2);
+          });
+          y += 6;
+        });
+        y += 3;
+      };
+
+      // --- 1. Resumo Executivo ---
+      secao('Resumo Executivo');
+      linha('Total Produzido', totalProd.toLocaleString('pt-BR') + ' mudas', true);
+      linha('Total Perdas', totalPerdas.toLocaleString('pt-BR') + ' mudas');
+      linha('Total Expedido', totalExp.toLocaleString('pt-BR') + ' mudas');
+      linha('Total Transferências', totalTransf.toLocaleString('pt-BR') + ' mudas');
+      linha('Taxa de Perda', taxaPerda.toFixed(1) + '%');
+      linha('Eficiência', eficiencia.toFixed(1) + '%', true);
+      linha('Estoque Total', estoqueTotal.toLocaleString('pt-BR') + ' mudas', true);
+      y += 5;
+
+      // --- 2. Análise por Clone ---
+      if (analiseClones.length > 0) {
+        secao('Análise por Clone');
+        tabela(
+          ['Clone', 'Produção', 'Perdas', 'Expedição', 'Mortalidade'],
+          analiseClones.slice(0, 20).map(c => [
+            c.nome,
+            c.prod.toLocaleString('pt-BR'),
+            c.perdas.toLocaleString('pt-BR'),
+            c.exp.toLocaleString('pt-BR'),
+            c.mortalidade + '%'
+          ])
+        );
       }
+
+      // --- 3. Estoque por Setor ---
+      if (estoquePorSetor.length > 0) {
+        secao('Estoque por Setor');
+        tabela(
+          ['Setor', 'Quantidade em Estoque'],
+          estoquePorSetor.map(s => [s.nome, s.total.toLocaleString('pt-BR')])
+        );
+      }
+
+      // --- 4. Estoque por Clone (top 10) ---
+      if (estoquePorClone.length > 0) {
+        secao('Estoque por Clone (Top 10)');
+        tabela(
+          ['Clone', 'Quantidade em Estoque'],
+          estoquePorClone.slice(0, 10).map(c => [c.name, c.value.toLocaleString('pt-BR')])
+        );
+      }
+
+      // --- 5. Produção por Clone (top 15) ---
+      if (prodMes.length > 0) {
+        secao('Registros de Produção');
+        const agrupado = {};
+        prodMes.forEach(p => {
+          const nome = cloneMap[p.clone_id] || p.clone_id;
+          agrupado[nome] = (agrupado[nome] || 0) + (p.quantidade || 0);
+        });
+        tabela(
+          ['Clone', 'Quantidade Produzida'],
+          Object.entries(agrupado).sort((a,b) => b[1]-a[1]).slice(0,15).map(([nome, qty]) => [nome, qty.toLocaleString('pt-BR')])
+        );
+      }
+
+      // --- 6. Perdas (top 15) ---
+      if (perdasMes.length > 0) {
+        secao('Registros de Perdas');
+        tabela(
+          ['Clone', 'Setor', 'Quantidade', 'Motivo'],
+          perdasMes.slice(0, 15).map(p => [
+            cloneMap[p.clone_id] || '-',
+            setorMap[p.setor_id] || '-',
+            (p.quantidade || 0).toLocaleString('pt-BR'),
+            p.motivo || '-'
+          ])
+        );
+      }
+
+      // --- 7. Expedições ---
+      if (expMes.length > 0) {
+        secao('Registros de Expedição');
+        tabela(
+          ['Data', 'Clone', 'Quantidade'],
+          expMes.slice(0, 15).map(m => [
+            m.data ? format(parseISO(m.data), 'dd/MM/yyyy') : '-',
+            cloneMap[m.clone_id] || '-',
+            (m.quantidade || 0).toLocaleString('pt-BR')
+          ])
+        );
+      }
+
+      // --- 8. Evolução 6 meses ---
+      secao('Evolução dos Últimos 6 Meses');
+      tabela(
+        ['Mês', 'Produção', 'Perdas', 'Expedição'],
+        evolucao.map(e => [e.label, e.prod.toLocaleString('pt-BR'), e.perd.toLocaleString('pt-BR'), e.exped.toLocaleString('pt-BR')])
+      );
+
+      // --- Rodapé em todas as páginas ---
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFillColor(...cor.bg);
+        pdf.rect(0, 288, pw, 10, 'F');
+        pdf.setTextColor(...cor.cinzaMed);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7);
+        pdf.text('Viveiro Metalsider — Relatório Gerencial Confidencial', margin, 294);
+        pdf.text(`Página ${i} de ${totalPages}`, pw - margin, 294, { align: 'right' });
+      }
+
       pdf.save(`viveiro_relatorio_${mes}.pdf`);
     } finally { setExportando(false); }
   };
