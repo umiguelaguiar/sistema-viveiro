@@ -149,34 +149,47 @@ export default function Relatorio() {
   const exportarPDF = async () => {
     setExportando(true);
     try {
+      // Carregar logo como base64
+      let logoBase64 = null;
+      try {
+        const resp = await fetch('https://media.base44.com/images/public/69bde243dc485779f5218ed4/eceff1601_LogoViveiro.jpeg');
+        const blob = await resp.blob();
+        logoBase64 = await new Promise(res => { const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(blob); });
+      } catch {}
+
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const pw = 210; // A4 width
+      const pw = 210;
       const margin = 15;
       const contentW = pw - margin * 2;
       let y = 0;
 
-      const addPage = () => { pdf.addPage(); y = margin; };
-      const checkY = (needed = 10) => { if (y + needed > 280) addPage(); };
-
-      // --- Cores ---
       const cor = { verde: [39, 121, 71], cinzaEsc: [40, 40, 40], cinzaMed: [90, 90, 90], cinzaClaro: [200, 200, 200], bg: [245, 248, 245], branco: [255, 255, 255], amarelo: [180, 120, 0], vermelho: [180, 40, 40] };
 
-      // --- Cabeçalho ---
-      pdf.setFillColor(...cor.verde);
-      pdf.rect(0, 0, pw, 28, 'F');
-      pdf.setTextColor(...cor.branco);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(18);
-      pdf.text('Viveiro Metalsider', margin, 11);
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      const mesLabel = mesesDisponiveis.find(m2 => m2.value === mes)?.label || mes;
-      pdf.text(`Relatório Gerencial — ${mesLabel}`, margin, 18);
-      pdf.setFontSize(8);
-      pdf.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, pw - margin, 18, { align: 'right' });
+      const addHeader = () => {
+        pdf.setFillColor(...cor.verde);
+        pdf.rect(0, 0, pw, 28, 'F');
+        if (logoBase64) {
+          try { pdf.addImage(logoBase64, 'JPEG', margin, 3, 22, 22); } catch {}
+        }
+        const textX = logoBase64 ? margin + 26 : margin;
+        pdf.setTextColor(...cor.branco);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(16);
+        pdf.text('Viveiro Metalsider', textX, 12);
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'normal');
+        const mesLabel = mesesDisponiveis.find(m2 => m2.value === mes)?.label || mes;
+        pdf.text(`Relatório Gerencial — ${mesLabel}`, textX, 19);
+        pdf.setFontSize(7.5);
+        pdf.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, pw - margin, 19, { align: 'right' });
+      };
+
+      addHeader();
       y = 36;
 
-      // --- Seção helper ---
+      const addPage = () => { pdf.addPage(); addHeader(); y = 36; };
+      const checkY = (needed = 10) => { if (y + needed > 280) addPage(); };
+
       const secao = (titulo) => {
         checkY(14);
         pdf.setFillColor(...cor.verde);
@@ -206,7 +219,6 @@ export default function Relatorio() {
       const tabela = (headers, rows) => {
         checkY(10);
         const colW = contentW / headers.length;
-        // Cabeçalho tabela
         pdf.setFillColor(...cor.cinzaEsc);
         pdf.rect(margin, y, contentW, 7, 'F');
         pdf.setTextColor(...cor.branco);
@@ -214,7 +226,6 @@ export default function Relatorio() {
         pdf.setFontSize(8);
         headers.forEach((h, i) => pdf.text(h, margin + colW * i + 2, y + 5));
         y += 7;
-        // Linhas
         rows.forEach((row, ri) => {
           checkY(6);
           pdf.setFillColor(ri % 2 === 0 ? 250 : 245, ri % 2 === 0 ? 250 : 248, ri % 2 === 0 ? 250 : 245);
@@ -224,10 +235,7 @@ export default function Relatorio() {
           pdf.setTextColor(...cor.cinzaEsc);
           pdf.setFont('helvetica', 'normal');
           pdf.setFontSize(7.5);
-          row.forEach((cell, ci) => {
-            const txt = String(cell ?? '-');
-            pdf.text(txt, margin + colW * ci + 2, y + 4.2);
-          });
+          row.forEach((cell, ci) => pdf.text(String(cell ?? '-'), margin + colW * ci + 2, y + 4.2));
           y += 6;
         });
         y += 3;
@@ -240,63 +248,84 @@ export default function Relatorio() {
       linha('Total Expedido', totalExp.toLocaleString('pt-BR') + ' mudas');
       linha('Total Transferências', totalTransf.toLocaleString('pt-BR') + ' mudas');
       linha('Taxa de Perda', taxaPerda.toFixed(1) + '%');
-      linha('Eficiência', eficiencia.toFixed(1) + '%', true);
-      linha('Estoque Total', estoqueTotal.toLocaleString('pt-BR') + ' mudas', true);
+      linha('Eficiência Operacional', eficiencia.toFixed(1) + '%', true);
+      linha('Estoque Total Atual', estoqueTotal.toLocaleString('pt-BR') + ' mudas', true);
       y += 5;
 
-      // --- 2. Análise por Clone ---
+      // --- 2. Indicadores de Desempenho (KPIs) ---
+      secao('Indicadores de Desempenho (KPIs)');
+      const variacaoProd = prodMesAnt > 0 ? (((totalProd - prodMesAnt) / prodMesAnt) * 100).toFixed(1) : 'N/D';
+      const varSinal = totalProd >= prodMesAnt ? '+' : '';
+      linha('Variação de Produção vs Mês Anterior', variacaoProd !== 'N/D' ? `${varSinal}${variacaoProd}%` : 'N/D');
+      linha('Média Diária de Produção (30 dias)', Math.round(mediaDiaria).toLocaleString('pt-BR') + ' mudas/dia');
+      linha('Previsão Mensal (média atual)', Math.round(mediaDiaria * 22).toLocaleString('pt-BR') + ' mudas');
+      linha('Previsão Anual (média atual)', Math.round(mediaDiaria * 252).toLocaleString('pt-BR') + ' mudas');
+      linha('Proporção Expedido / Produzido', totalProd > 0 ? ((totalExp / totalProd) * 100).toFixed(1) + '%' : 'N/D');
+      linha('Número de Clones Ativos no Período', analiseClones.length + ' clones');
+      linha('Número de Setores com Estoque', estoquePorSetor.filter(s => s.total > 0).length + ' setores');
+      y += 5;
+
+      // --- 3. Análise por Clone ---
       if (analiseClones.length > 0) {
-        secao('Análise por Clone');
+        secao('Análise de Desempenho por Clone');
         tabela(
-          ['Clone', 'Produção', 'Perdas', 'Expedição', 'Mortalidade'],
+          ['Clone', 'Produção', 'Perdas', 'Expedição', 'Mortalidade', 'Estoque'],
           analiseClones.slice(0, 20).map(c => [
             c.nome,
             c.prod.toLocaleString('pt-BR'),
             c.perdas.toLocaleString('pt-BR'),
             c.exp.toLocaleString('pt-BR'),
-            c.mortalidade + '%'
+            c.mortalidade + '%',
+            c.estoque.toLocaleString('pt-BR')
           ])
         );
       }
 
-      // --- 3. Estoque por Setor ---
+      // --- 4. Estoque por Setor ---
       if (estoquePorSetor.length > 0) {
         secao('Estoque por Setor');
         tabela(
-          ['Setor', 'Quantidade em Estoque'],
-          estoquePorSetor.map(s => [s.nome, s.total.toLocaleString('pt-BR')])
+          ['Setor', 'Quantidade em Estoque', '% do Total'],
+          estoquePorSetor
+            .filter(s => s.total > 0)
+            .sort((a,b) => b.total - a.total)
+            .map(s => [s.nome, s.total.toLocaleString('pt-BR'), estoqueTotal > 0 ? ((s.total/estoqueTotal)*100).toFixed(1)+'%' : '-'])
         );
       }
 
-      // --- 4. Estoque por Clone (top 10) ---
+      // --- 5. Top 10 Clones em Estoque ---
       if (estoquePorClone.length > 0) {
-        secao('Estoque por Clone (Top 10)');
+        secao('Top 10 Clones em Estoque');
         tabela(
-          ['Clone', 'Quantidade em Estoque'],
-          estoquePorClone.slice(0, 10).map(c => [c.name, c.value.toLocaleString('pt-BR')])
+          ['Clone', 'Quantidade em Estoque', '% do Total'],
+          estoquePorClone.slice(0, 10).map(c => [
+            c.name,
+            c.value.toLocaleString('pt-BR'),
+            estoqueTotal > 0 ? ((c.value/estoqueTotal)*100).toFixed(1)+'%' : '-'
+          ])
         );
       }
 
-      // --- 5. Produção por Clone (top 15) ---
+      // --- 6. Produção por Clone ---
       if (prodMes.length > 0) {
-        secao('Registros de Produção');
+        secao('Produção por Clone no Período');
         const agrupado = {};
-        prodMes.forEach(p => {
-          const nome = cloneMap[p.clone_id] || p.clone_id;
-          agrupado[nome] = (agrupado[nome] || 0) + (p.quantidade || 0);
-        });
+        prodMes.forEach(p => { const nome = cloneMap[p.clone_id] || p.clone_id; agrupado[nome] = (agrupado[nome] || 0) + (p.quantidade || 0); });
         tabela(
-          ['Clone', 'Quantidade Produzida'],
-          Object.entries(agrupado).sort((a,b) => b[1]-a[1]).slice(0,15).map(([nome, qty]) => [nome, qty.toLocaleString('pt-BR')])
+          ['Clone', 'Quantidade Produzida', '% do Total'],
+          Object.entries(agrupado).sort((a,b) => b[1]-a[1]).slice(0,15).map(([nome, qty]) => [
+            nome, qty.toLocaleString('pt-BR'), totalProd > 0 ? ((qty/totalProd)*100).toFixed(1)+'%' : '-'
+          ])
         );
       }
 
-      // --- 6. Perdas (top 15) ---
+      // --- 7. Perdas ---
       if (perdasMes.length > 0) {
         secao('Registros de Perdas');
         tabela(
-          ['Clone', 'Setor', 'Quantidade', 'Motivo'],
+          ['Data', 'Clone', 'Setor', 'Qtd', 'Motivo'],
           perdasMes.slice(0, 15).map(p => [
+            p.data ? format(parseISO(p.data), 'dd/MM/yyyy') : '-',
             cloneMap[p.clone_id] || '-',
             setorMap[p.setor_id] || '-',
             (p.quantidade || 0).toLocaleString('pt-BR'),
@@ -305,7 +334,7 @@ export default function Relatorio() {
         );
       }
 
-      // --- 7. Expedições ---
+      // --- 8. Expedições ---
       if (expMes.length > 0) {
         secao('Registros de Expedição');
         tabela(
@@ -318,11 +347,17 @@ export default function Relatorio() {
         );
       }
 
-      // --- 8. Evolução 6 meses ---
+      // --- 9. Evolução 6 meses ---
       secao('Evolução dos Últimos 6 Meses');
       tabela(
-        ['Mês', 'Produção', 'Perdas', 'Expedição'],
-        evolucao.map(e => [e.label, e.prod.toLocaleString('pt-BR'), e.perd.toLocaleString('pt-BR'), e.exped.toLocaleString('pt-BR')])
+        ['Mês', 'Produção', 'Perdas', 'Expedição', 'Eficiência'],
+        evolucao.map(e => [
+          e.label,
+          e.prod.toLocaleString('pt-BR'),
+          e.perd.toLocaleString('pt-BR'),
+          e.exped.toLocaleString('pt-BR'),
+          e.prod > 0 ? (((e.prod - e.perd) / e.prod) * 100).toFixed(1) + '%' : '-'
+        ])
       );
 
       // --- Rodapé em todas as páginas ---
