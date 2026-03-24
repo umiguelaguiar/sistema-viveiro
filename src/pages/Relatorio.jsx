@@ -157,7 +157,7 @@ export default function Relatorio() {
           i.crossOrigin = 'anonymous';
           i.onload = () => res(i);
           i.onerror = rej;
-          i.src = 'https://media.base44.com/images/public/69bde243dc485779f5218ed4/eceff1601_LogoViveiro.jpeg';
+          i.src = 'https://media.base44.com/images/public/69bde243dc485779f5218ed4/f14cef072_IMG-20260225-WA0001-Editado.png';
         });
         const cnv = document.createElement('canvas');
         cnv.width = img.width; cnv.height = img.height;
