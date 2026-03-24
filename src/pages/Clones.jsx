@@ -10,20 +10,32 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus } from 'lucide-react';
+import { Plus, Pencil } from 'lucide-react';
 
 export default function Clones() {
   const { data: clones, isLoading } = useClones();
   const { data: especies } = useEspecies();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ codigo_clone: '', especie_id: '', fornecedor: '', observacoes: '' });
 
   const handleSave = async () => {
-    await base44.entities.Clone.create(form);
+    if (editingId) {
+      await base44.entities.Clone.update(editingId, form);
+    } else {
+      await base44.entities.Clone.create(form);
+    }
     queryClient.invalidateQueries({ queryKey: ['clones'] });
     setForm({ codigo_clone: '', especie_id: '', fornecedor: '', observacoes: '' });
+    setEditingId(null);
     setOpen(false);
+  };
+
+  const handleEdit = (clone) => {
+    setEditingId(clone.id);
+    setForm({ codigo_clone: clone.codigo_clone, especie_id: clone.especie_id || '', fornecedor: clone.fornecedor || '', observacoes: clone.observacoes || '' });
+    setOpen(true);
   };
 
   const handleDelete = async (id) => {
@@ -39,6 +51,9 @@ export default function Clones() {
     { header: 'Espécie', render: (row) => especieMap[row.especie_id] || '—' },
     { header: 'Fornecedor', render: (row) => row.fornecedor || '—' },
     { header: 'Observações', render: (row) => row.observacoes ? <span className="text-muted-foreground truncate max-w-[200px] block">{row.observacoes}</span> : '—' },
+    { header: '', render: (row) => (
+      <Button variant="ghost" size="sm" onClick={() => handleEdit(row)}><Pencil className="w-4 h-4" /></Button>
+    )},
   ];
 
   return (
@@ -54,9 +69,9 @@ export default function Clones() {
       />
       <DataTable columns={columns} data={clones} isLoading={isLoading} onDelete={handleDelete} />
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditingId(null); setForm({ codigo_clone: '', especie_id: '', fornecedor: '', observacoes: '' }); } }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Novo Clone</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingId ? 'Editar Clone' : 'Novo Clone'}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Código do Clone</Label>
@@ -82,7 +97,7 @@ export default function Clones() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSave} disabled={!form.codigo_clone}>Salvar</Button>
+            <Button onClick={handleSave} disabled={!form.codigo_clone}>{editingId ? 'Atualizar' : 'Salvar'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
