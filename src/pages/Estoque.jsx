@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { differenceInDays, parseISO } from 'date-fns';
+import { differenceInDays, parseISO, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 function IdadeBadge({ dias }) {
   if (dias == null) return <span className="text-muted-foreground text-xs">—</span>;
@@ -25,6 +26,7 @@ export default function Estoque() {
   const [filtroClone, setFiltroClone] = useState('todos');
   const [filtroSetor, setFiltroSetor] = useState('todos');
   const [filtroLote, setFiltroLote] = useState('todos');
+  const [filtroMes, setFiltroMes] = useState('todos');
   const [busca, setBusca] = useState('');
   const [expanded, setExpanded] = useState(null);
 
@@ -63,23 +65,30 @@ export default function Estoque() {
             ? differenceInDays(new Date(), parseISO(producaoInicial.data))
             : null;
 
-          result.push({ setorId, cloneId, loteId, setor, clone, lote, qty, historico, idade });
+          result.push({ setorId, cloneId, loteId, setor, clone, lote, qty, historico, idade, dataInicio: producaoInicial?.data || null });
         });
       });
     });
     return result;
   }, [stock, setorMap, cloneMap, loteMap, producoes, movimentacoes, perdas]);
 
+  const monthOptions = useMemo(() => {
+    const months = new Set();
+    producoes.forEach(p => { if (p.data) months.add(p.data.substring(0, 7)); });
+    return Array.from(months).sort().reverse();
+  }, [producoes]);
+
   const filtradas = useMemo(() => linhas.filter(l => {
     if (filtroClone !== 'todos' && l.cloneId !== filtroClone) return false;
     if (filtroSetor !== 'todos' && l.setorId !== filtroSetor) return false;
     if (filtroLote !== 'todos' && l.loteId !== filtroLote) return false;
+    if (filtroMes !== 'todos' && (!l.dataInicio || !l.dataInicio.startsWith(filtroMes))) return false;
     if (busca) {
       const q = busca.toLowerCase();
       if (!l.clone?.codigo_clone?.toLowerCase().includes(q) && !l.lote?.codigo?.toLowerCase().includes(q) && !l.setor?.nome?.toLowerCase().includes(q)) return false;
     }
     return true;
-  }), [linhas, filtroClone, filtroSetor, filtroLote, busca]);
+  }), [linhas, filtroClone, filtroSetor, filtroLote, filtroMes, busca]);
 
   const totalFiltrado = filtradas.reduce((s, l) => s + l.qty, 0);
 
@@ -131,6 +140,17 @@ export default function Estoque() {
           <SelectContent>
             <SelectItem value="todos">Todos os lotes</SelectItem>
             {lotes.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filtroMes} onValueChange={setFiltroMes}>
+          <SelectTrigger className="w-48"><SelectValue placeholder="Mês de produção" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os meses</SelectItem>
+            {monthOptions.map(m => (
+              <SelectItem key={m} value={m}>
+                {format(new Date(m + '-01T12:00:00'), 'MMMM yyyy', { locale: ptBR }).replace(/^\w/, c => c.toUpperCase())}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
