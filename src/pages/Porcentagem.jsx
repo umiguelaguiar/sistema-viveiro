@@ -4,6 +4,7 @@ import PageHeader from '@/components/shared/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 function getMonthOptions(items) {
   const months = new Set();
@@ -140,7 +141,7 @@ export default function Porcentagem() {
           <SelectContent>
             <SelectItem value="todos">Todos os meses</SelectItem>
             {monthOptions.map(m => (
-              <SelectItem key={m} value={m}>{format(new Date(m + '-01'), 'MMMM yyyy').replace(/^\w/, c => c.toUpperCase())}</SelectItem>
+              <SelectItem key={m} value={m}>{format(new Date(m + '-01T12:00:00'), 'MMMM yyyy', { locale: ptBR }).replace(/^\w/, c => c.toUpperCase())}</SelectItem>
             ))}
           </SelectContent>
         </Select>
