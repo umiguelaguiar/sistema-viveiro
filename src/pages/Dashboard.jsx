@@ -180,7 +180,6 @@ export default function Dashboard() {
                 const [y, mo] = m.split('-').map(Number);
                 return <SelectItem key={m} value={m}>{format(new Date(y, mo - 1, 1), 'MMM yyyy', { locale: ptBR })}</SelectItem>;
               })}
-              ))}
             </SelectContent>
           </Select>
           <Select value={cloneFiltro} onValueChange={setCloneFiltro}>

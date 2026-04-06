@@ -49,6 +49,7 @@ export default function ColaboradoresRelatorio() {
               <th className="text-center px-3 py-2 font-medium text-destructive">Faltas</th>
               <th className="text-center px-3 py-2 font-medium text-amber-600">Ates.</th>
               <th className="text-center px-3 py-2 font-medium text-blue-600">Folgas</th>
+              <th className="text-center px-3 py-2 font-medium text-purple-600">Plantões</th>
               <th className="text-center px-3 py-2 font-medium">H. Extras</th>
               <th className="text-center px-3 py-2 font-medium">Produção</th>
             </tr>
@@ -60,6 +61,7 @@ export default function ColaboradoresRelatorio() {
               const faltas = cf.filter(f => f.status === 'falta').length;
               const atestados = cf.filter(f => f.status === 'atestado').length;
               const folgas = cf.filter(f => f.status === 'folga').length;
+              const plantoesBanco = cf.filter(f => f.e_plantao && f.tipo_hora_extra === 'banco_horas').length;
               const hExtrasBanco = cf.filter(f => f.tipo_hora_extra === 'banco_horas' && !f.banco_horas_utilizado).reduce((s, f) => s + (f.horas_extras || 0), 0);
               const hExtrasPagamento = cf.filter(f => f.tipo_hora_extra === 'pagamento').reduce((s, f) => s + (f.horas_extras || 0), 0);
               const hExtras = hExtrasBanco + hExtrasPagamento;
@@ -75,6 +77,7 @@ export default function ColaboradoresRelatorio() {
                   <td className="text-center px-3 py-2 text-destructive font-medium">{faltas}</td>
                   <td className="text-center px-3 py-2 text-amber-600 font-medium">{atestados}</td>
                   <td className="text-center px-3 py-2 text-blue-600 font-medium">{folgas}</td>
+                  <td className="text-center px-3 py-2 text-purple-600 font-medium">{plantoesBanco > 0 ? plantoesBanco : <span className="text-muted-foreground">—</span>}</td>
                   <td className="text-center px-3 py-2">
                     {hExtras > 0 ? (
                       <div className="flex flex-col items-center gap-1">
