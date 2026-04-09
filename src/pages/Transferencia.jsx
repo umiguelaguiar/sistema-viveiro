@@ -55,7 +55,7 @@ export default function Transferencia() {
       tipo: 'transferencia',
     });
 
-    // Se for transferência casa de sombra → rustificação, atualiza indicadores do lote
+    // Se for transferência casa de sombra → rustificação, atualiza indicadores e registra perdas
     if (isEnraizamentoTransfer) {
       const descartadas = Number(form.descartadas) || 0;
       const lote = lotes.find(l => l.id === form.lote_id);
@@ -67,7 +67,22 @@ export default function Transferencia() {
           mudas_sobreviventes: novas_sobreviventes,
         });
         queryClient.invalidateQueries({ queryKey: ['lotes'] });
-        toast.success(`Indicadores do lote atualizados: ${novas_enraizadas} enraizadas, ${novas_sobreviventes} sobreviventes`);
+
+        // Registra as mudas descartadas como perda
+        if (descartadas > 0) {
+          await base44.entities.Perda.create({
+            lote_id: form.lote_id,
+            clone_id: form.clone_id,
+            setor_id: form.setor_origem_id,
+            quantidade: descartadas,
+            motivo: 'Descarte no enraizamento (transferência para rustificação)',
+            data: form.data,
+          });
+          queryClient.invalidateQueries({ queryKey: ['perdas'] });
+          toast.success(`Indicadores atualizados e ${descartadas} mudas descartadas registradas como perda.`);
+        } else {
+          toast.success(`Indicadores do lote atualizados: ${novas_enraizadas} enraizadas, ${novas_sobreviventes} sobreviventes`);
+        }
       }
     }
 
