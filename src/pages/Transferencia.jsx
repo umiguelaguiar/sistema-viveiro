@@ -94,6 +94,24 @@ export default function Transferencia() {
   };
 
   const handleDelete = async (id) => {
+    // Verifica se há perda associada (descarte no enraizamento)
+    const mov = transferencias.find(m => m.id === id);
+    if (mov) {
+      const origemNome = setores.find(s => s.id === mov.setor_origem_id)?.nome?.toLowerCase() || '';
+      const destinoNome = setores.find(s => s.id === mov.setor_destino_id)?.nome?.toLowerCase() || '';
+      if (origemNome.includes('sombra') && destinoNome.includes('rustif')) {
+        const perdaAssociada = perdas.find(p =>
+          p.lote_id === mov.lote_id &&
+          p.clone_id === mov.clone_id &&
+          p.setor_id === mov.setor_origem_id &&
+          p.data === mov.data &&
+          p.motivo?.includes('Descarte no enraizamento')
+        );
+        if (perdaAssociada) {
+          await base44.entities.Perda.delete(perdaAssociada.id);
+        }
+      }
+    }
     await base44.entities.Movimentacao.delete(id);
     queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
     queryClient.invalidateQueries({ queryKey: ['producoes'] });
