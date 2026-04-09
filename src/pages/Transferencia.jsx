@@ -149,7 +149,7 @@ export default function Transferencia() {
       <DataTable columns={columns} data={transferencias} isLoading={isLoading} onDelete={handleDelete} />
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Nova Transferência</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
