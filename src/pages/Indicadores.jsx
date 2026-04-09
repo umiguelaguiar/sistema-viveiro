@@ -64,8 +64,6 @@ export default function Indicadores() {
       const enraizadas = transferidas - descartadas;
       // % Enraizamento = (transferidas - descartadas) / transferidas
       const taxa_enraizamento = calcTaxa(transferidas - descartadas, transferidas);
-      // % Sobrevivência = transferidas / enraizadas
-      const taxa_sobrevivencia = calcTaxa(transferidas, enraizadas);
       return {
         ...t,
         lote: loteMap[t.lote_id],
@@ -74,9 +72,7 @@ export default function Indicadores() {
         enraizadas,
         transferidas,
         taxa_enraizamento,
-        taxa_sobrevivencia,
         status_enraizamento: classificar(taxa_enraizamento, [60, 80]),
-        status_sobrevivencia: classificar(taxa_sobrevivencia, [85, 92]),
       };
     });
   }, [movimentacoes, setores, perdas, loteMap, cloneMap]);
@@ -110,7 +106,6 @@ export default function Indicadores() {
   }, [transferEnraizamento, loteMap]);
 
   const mediaEnraiz = avg(transferFiltradas.map(t => t.taxa_enraizamento));
-  const mediaSobrev = avg(transferFiltradas.map(t => t.taxa_sobrevivencia));
 
   const KpiCard = ({ label, valor, thresholds }) => {
     const status = classificar(valor, thresholds);
@@ -168,7 +163,6 @@ export default function Indicadores() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard label="Média Enraizamento" valor={mediaEnraiz} thresholds={[60, 80]} />
-        <KpiCard label="Média Sobrevivência" valor={mediaSobrev} thresholds={[85, 92]} />
         <Card className="p-5 border bg-muted/30">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Total Transferências</p>
           <p className="text-4xl font-bold">{transferFiltradas.length}</p>
@@ -197,7 +191,6 @@ export default function Indicadores() {
                   <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Descartadas</th>
                   <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Enraizadas</th>
                   <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">% Enraizamento</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">% Sobrevivência</th>
                 </tr>
               </thead>
               <tbody>
@@ -213,12 +206,6 @@ export default function Indicadores() {
                       <div className="flex flex-col items-center gap-1">
                         <span className={`font-semibold ${STATUS_COLORS[row.status_enraizamento].text}`}>{row.taxa_enraizamento}%</span>
                         <StatusBadge status={row.status_enraizamento} />
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex flex-col items-center gap-1">
-                        <span className={`font-semibold ${STATUS_COLORS[row.status_sobrevivencia].text}`}>{row.taxa_sobrevivencia}%</span>
-                        <StatusBadge status={row.status_sobrevivencia} />
                       </div>
                     </td>
                   </tr>
