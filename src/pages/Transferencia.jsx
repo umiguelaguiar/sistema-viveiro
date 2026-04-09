@@ -24,12 +24,16 @@ export default function Transferencia() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const todayLocal = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
-  const [form, setForm] = useState({ lote_id: '', clone_id: '', quantidade: '', setor_origem_id: '', setor_destino_id: '', data: todayLocal() });
+  const [form, setForm] = useState({ lote_id: '', clone_id: '', quantidade: '', setor_origem_id: '', setor_destino_id: '', data: todayLocal(), descartadas: '' });
 
   const stock = useMemo(() => calculateStock(producoes, movimentacoes, perdas), [producoes, movimentacoes, perdas]);
 
   const transferencias = movimentacoes.filter(m => m.tipo === 'transferencia');
 
+  // Detecta se é transferência casa de sombra → rustificação
+  const setorOrigemNome = useMemo(() => setores.find(s => s.id === form.setor_origem_id)?.nome?.toLowerCase() || '', [setores, form.setor_origem_id]);
+  const setorDestinoNome = useMemo(() => setores.find(s => s.id === form.setor_destino_id)?.nome?.toLowerCase() || '', [setores, form.setor_destino_id]);
+  const isEnraizamentoTransfer = setorOrigemNome.includes('sombra') && setorDestinoNome.includes('rustif');
 
   const disponivel = form.setor_origem_id && form.clone_id && form.lote_id
     ? getStockForSetorCloneLote(stock, form.setor_origem_id, form.clone_id, form.lote_id)
@@ -42,14 +46,35 @@ export default function Transferencia() {
       return;
     }
     await base44.entities.Movimentacao.create({
-      ...form,
+      lote_id: form.lote_id,
+      clone_id: form.clone_id,
+      quantidade: qty,
+      setor_origem_id: form.setor_origem_id,
+      setor_destino_id: form.setor_destino_id,
+      data: form.data,
       tipo: 'transferencia',
-      quantidade: qty
     });
+
+    // Se for transferência casa de sombra → rustificação, atualiza indicadores do lote
+    if (isEnraizamentoTransfer) {
+      const descartadas = Number(form.descartadas) || 0;
+      const lote = lotes.find(l => l.id === form.lote_id);
+      if (lote) {
+        const novas_enraizadas = (lote.estacas_enraizadas || 0) + qty + descartadas;
+        const novas_sobreviventes = (lote.mudas_sobreviventes || 0) + qty;
+        await base44.entities.Lote.update(form.lote_id, {
+          estacas_enraizadas: novas_enraizadas,
+          mudas_sobreviventes: novas_sobreviventes,
+        });
+        queryClient.invalidateQueries({ queryKey: ['lotes'] });
+        toast.success(`Indicadores do lote atualizados: ${novas_enraizadas} enraizadas, ${novas_sobreviventes} sobreviventes`);
+      }
+    }
+
     queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
     queryClient.invalidateQueries({ queryKey: ['producoes'] });
     queryClient.invalidateQueries({ queryKey: ['perdas'] });
-    setForm({ lote_id: '', clone_id: '', quantidade: '', setor_origem_id: '', setor_destino_id: '', data: todayLocal() });
+    setForm({ lote_id: '', clone_id: '', quantidade: '', setor_origem_id: '', setor_destino_id: '', data: todayLocal(), descartadas: '' });
     setOpen(false);
   };
 
@@ -129,10 +154,26 @@ export default function Transferencia() {
                 </SelectContent>
               </Select>
             </div>
+            {isEnraizamentoTransfer && (
+              <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
+                ⚠️ Transferência de <strong>Casa de Sombra → Rustificação</strong>: informe também as mudas descartadas para atualizar os indicadores de produção.
+              </div>
+            )}
             <div>
-              <Label>Quantidade {disponivel > 0 && <span className="text-muted-foreground">(Disp: {disponivel})</span>}</Label>
+              <Label>Quantidade transferida {disponivel > 0 && <span className="text-muted-foreground">(Disp: {disponivel})</span>}</Label>
               <Input type="number" value={form.quantidade} onChange={e => setForm({ ...form, quantidade: e.target.value })} placeholder="Ex: 500" />
             </div>
+            {isEnraizamentoTransfer && (
+              <div>
+                <Label>Mudas descartadas <span className="text-muted-foreground">(não transferidas)</span></Label>
+                <Input type="number" value={form.descartadas} onChange={e => setForm({ ...form, descartadas: e.target.value })} placeholder="Ex: 50" />
+                {form.quantidade && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Total enraizadas que serão registradas: {Number(form.quantidade || 0) + Number(form.descartadas || 0)}
+                  </p>
+                )}
+              </div>
+            )}
             <div>
               <Label>Data</Label>
               <Input type="date" value={form.data} onChange={e => setForm({ ...form, data: e.target.value })} />
