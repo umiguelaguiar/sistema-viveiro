@@ -21,7 +21,8 @@ export function useLotes() {
   return useQuery({
     queryKey: ['lotes'],
     queryFn: () => base44.entities.Lote.list('-created_date'),
-    initialData: [],
+    placeholderData: [],
+    staleTime: 0,
   });
 }
 
