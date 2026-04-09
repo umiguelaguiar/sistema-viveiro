@@ -68,7 +68,7 @@ export default function Indicadores() {
       const descartadas = perdaAssoc?.quantidade || 0;
       const enraizadas = t.quantidade + descartadas;
       const lote = loteMap[t.lote_id];
-      const taxa_enraizamento = enraizadas > 0 ? calcTaxa(t.quantidade, enraizadas) : 0;
+      const taxa_enraizamento = lote?.total_estacas > 0 ? calcTaxa(enraizadas, lote.total_estacas) : 0;
       const taxa_sobrevivencia = enraizadas > 0 ? calcTaxa(t.quantidade, enraizadas) : 100;
       return {
         ...t,
