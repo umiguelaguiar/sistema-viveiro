@@ -54,12 +54,15 @@ export default function Indicadores() {
   }), [lotes, especieFiltro, anoFiltro]);
 
   const indicadores = useMemo(() => lotesFiltrados
-    .filter(l => l.total_estacas > 0)
+    .filter(l => (l.total_estacas > 0) || (l.estacas_enraizadas > 0) || (l.mudas_sobreviventes > 0))
     .map(l => {
-      const taxa_enraizamento = calcTaxa(l.estacas_enraizadas, l.total_estacas);
-      const taxa_sobrevivencia = calcTaxa(l.mudas_sobreviventes, l.estacas_enraizadas);
-      const taxa_aproveitamento = calcTaxa(l.mudas_vendaveis, l.total_estacas);
-      const taxa_mortalidade = calcTaxa(l.total_estacas - (l.mudas_vendaveis || 0), l.total_estacas);
+      const base = l.total_estacas || l.estacas_enraizadas || 1;
+      const taxa_enraizamento = calcTaxa(l.estacas_enraizadas, l.total_estacas || l.estacas_enraizadas || 1);
+      const taxa_sobrevivencia = calcTaxa(l.mudas_sobreviventes, l.estacas_enraizadas || l.mudas_sobreviventes || 1);
+      const taxa_aproveitamento = calcTaxa(l.mudas_vendaveis, l.total_estacas || l.estacas_enraizadas || 1);
+      const taxa_mortalidade = l.total_estacas > 0
+        ? calcTaxa(l.total_estacas - (l.mudas_vendaveis || 0), l.total_estacas)
+        : 0;
       return {
         ...l,
         taxa_enraizamento,
