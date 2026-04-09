@@ -1,0 +1,42 @@
+{
+  "name": "Lote",
+  "type": "object",
+  "properties": {
+    "codigo": {
+      "type": "string",
+      "description": "C\u00f3digo do lote"
+    },
+    "data_inicio": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de in\u00edcio do lote"
+    },
+    "quantidade_inicial": {
+      "type": "number",
+      "description": "Quantidade inicial de mudas"
+    },
+    "especie_id": {
+      "type": "string",
+      "description": "ID da esp\u00e9cie"
+    },
+    "total_estacas": {
+      "type": "number",
+      "description": "Total de estacas plantadas"
+    },
+    "estacas_enraizadas": {
+      "type": "number",
+      "description": "Quantidade de estacas enraizadas"
+    },
+    "mudas_sobreviventes": {
+      "type": "number",
+      "description": "Quantidade de mudas sobreviventes"
+    },
+    "mudas_vendaveis": {
+      "type": "number",
+      "description": "Quantidade de mudas vend\u00e1veis"
+    }
+  },
+  "required": [
+    "codigo"
+  ]
+}

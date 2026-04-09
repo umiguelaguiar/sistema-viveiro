@@ -13,7 +13,7 @@ import { canAccess, ROLES, getRoleLabel, getRoleBadgeColor } from '@/lib/roles';
 const allNavItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
   { label: 'Estoque', icon: Boxes, path: '/estoque' },
-  { label: 'Porcentagem', icon: Percent, path: '/porcentagem' },
+  { label: 'Indicadores', icon: Percent, path: '/indicadores' },
   { label: 'Relatório', icon: FileBarChart2, path: '/relatorio' },
   { label: 'Previsão', icon: TrendingUp, path: '/previsao' },
   { label: 'Espécies', icon: TreePine, path: '/especies' },

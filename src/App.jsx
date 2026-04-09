@@ -14,7 +14,7 @@ import RouteGuard from '@/components/layout/RouteGuard';
 import Dashboard from '@/pages/Dashboard';
 import Perfil from '@/pages/Perfil';
 import Admin from '@/pages/Admin';
-import Porcentagem from '@/pages/Porcentagem';
+import Indicadores from '@/pages/Indicadores';
 import Relatorio from '@/pages/Relatorio';
 import Especies from '@/pages/Especies';
 import Clones from '@/pages/Clones';
@@ -91,7 +91,7 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<RouteGuard><Dashboard /></RouteGuard>} />
         <Route path="/perfil" element={<RouteGuard><Perfil /></RouteGuard>} />
         <Route path="/admin" element={<RouteGuard><Admin /></RouteGuard>} />
-        <Route path="/porcentagem" element={<RouteGuard><Porcentagem /></RouteGuard>} />
+        <Route path="/indicadores" element={<RouteGuard><Indicadores /></RouteGuard>} />
         <Route path="/relatorio" element={<RouteGuard><Relatorio /></RouteGuard>} />
         <Route path="/especies" element={<RouteGuard><Especies /></RouteGuard>} />
         <Route path="/clones" element={<RouteGuard><Clones /></RouteGuard>} />
