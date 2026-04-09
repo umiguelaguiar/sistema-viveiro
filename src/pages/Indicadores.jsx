@@ -38,6 +38,9 @@ export default function Indicadores() {
   const { data: perdas = [] } = usePerdas();
   const { data: lotes = [] } = useLotes();
   const [anoFiltro, setAnoFiltro] = useState('todos');
+  const [mesFiltro, setMesFiltro] = useState('todos');
+  const [cloneFiltro, setCloneFiltro] = useState('todos');
+  const [loteFiltro, setLoteFiltro] = useState('todos');
 
   const loteMap = useMemo(() => Object.fromEntries(lotes.map(l => [l.id, l])), [lotes]);
   const cloneMap = useMemo(() => Object.fromEntries(clones.map(c => [c.id, c])), [clones]);
@@ -83,10 +86,28 @@ export default function Indicadores() {
     return Array.from(anos).sort().reverse();
   }, [transferEnraizamento]);
 
-  const transferFiltradas = useMemo(() => anoFiltro === 'todos'
-    ? transferEnraizamento
-    : transferEnraizamento.filter(t => t.data?.startsWith(anoFiltro)),
-  [transferEnraizamento, anoFiltro]);
+  const transferFiltradas = useMemo(() => transferEnraizamento.filter(t => {
+    if (anoFiltro !== 'todos' && !t.data?.startsWith(anoFiltro)) return false;
+    if (mesFiltro !== 'todos' && t.data?.substring(0, 7) !== mesFiltro) return false;
+    if (cloneFiltro !== 'todos' && t.clone_id !== cloneFiltro) return false;
+    if (loteFiltro !== 'todos' && t.lote_id !== loteFiltro) return false;
+    return true;
+  }), [transferEnraizamento, anoFiltro, mesFiltro, cloneFiltro, loteFiltro]);
+
+  const mesesOptions = useMemo(() => {
+    const meses = new Set(transferEnraizamento.filter(t => t.data).map(t => t.data.substring(0, 7)));
+    return Array.from(meses).sort().reverse();
+  }, [transferEnraizamento]);
+
+  const clonesOptions = useMemo(() => {
+    const ids = new Set(transferEnraizamento.map(t => t.clone_id).filter(Boolean));
+    return Array.from(ids).map(id => ({ id, label: cloneMap[id]?.codigo_clone || id }));
+  }, [transferEnraizamento, cloneMap]);
+
+  const lotesOptions = useMemo(() => {
+    const ids = new Set(transferEnraizamento.map(t => t.lote_id).filter(Boolean));
+    return Array.from(ids).map(id => ({ id, label: loteMap[id]?.codigo || id }));
+  }, [transferEnraizamento, loteMap]);
 
   const mediaEnraiz = avg(transferFiltradas.map(t => t.taxa_enraizamento));
   const mediaSobrev = avg(transferFiltradas.map(t => t.taxa_sobrevivencia));
@@ -108,13 +129,38 @@ export default function Indicadores() {
     <div className="space-y-6">
       <PageHeader title="Indicadores de Produção" description="Análise por transferência (Casa de Sombra → Rustificação)" />
 
-      {/* Filtro */}
+      {/* Filtros */}
       <div className="flex flex-wrap gap-3">
-        <Select value={anoFiltro} onValueChange={setAnoFiltro}>
+        <Select value={anoFiltro} onValueChange={v => { setAnoFiltro(v); setMesFiltro('todos'); }}>
           <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar por ano" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos os anos</SelectItem>
             {anosOptions.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={mesFiltro} onValueChange={setMesFiltro}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar por mês" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os meses</SelectItem>
+            {mesesOptions.map(m => {
+              const [ano, mes] = m.split('-');
+              const nome = new Date(Number(ano), Number(mes) - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+              return <SelectItem key={m} value={m}>{nome.charAt(0).toUpperCase() + nome.slice(1)}</SelectItem>;
+            })}
+          </SelectContent>
+        </Select>
+        <Select value={cloneFiltro} onValueChange={setCloneFiltro}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar por clone" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os clones</SelectItem>
+            {clonesOptions.map(c => <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={loteFiltro} onValueChange={setLoteFiltro}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar por lote" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os lotes</SelectItem>
+            {lotesOptions.map(l => <SelectItem key={l.id} value={l.id}>{l.label}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
