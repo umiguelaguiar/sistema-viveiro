@@ -47,7 +47,6 @@ export default function Porcentagem() {
   const [mesFiltro, setMesFiltro] = useState('todos');
   const [cloneFiltro, setCloneFiltro] = useState('todos');
   const [loteFiltro, setLoteFiltro] = useState('todos');
-  const [viewMode, setViewMode] = useState('clone');
 
   const allItems = useMemo(() => [...producoes, ...perdas], [producoes, perdas]);
   const monthOptions = useMemo(() => getMonthOptions(allItems), [allItems]);
@@ -112,8 +111,6 @@ export default function Porcentagem() {
   const globalPerdas = calcPerda(totalProd, totalPerd);
   const globalEficiencia = calcEficiencia(totalProd, totalPerd);
 
-  const dados = viewMode === 'clone' ? dadosPorClone : dadosPorLote;
-
   return (
     <div>
       <PageHeader title="Análise de Desempenho" description="Enraizamento, perdas e eficiência por clone e lote" />
@@ -169,26 +166,16 @@ export default function Porcentagem() {
           </SelectContent>
         </Select>
 
-        <div className="flex rounded-lg border overflow-hidden">
-          <button onClick={() => setViewMode('clone')}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${viewMode === 'clone' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}>
-            Por Clone
-          </button>
-          <button onClick={() => setViewMode('lote')}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${viewMode === 'lote' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'}`}>
-            Por Lote
-          </button>
-        </div>
       </div>
 
-      <Card className="overflow-hidden">
+      {/* Tabela por Clone */}
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Por Clone</h2>
+      <Card className="overflow-hidden mb-6">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-muted/50">
-                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {viewMode === 'clone' ? 'Clone' : 'Lote'}
-                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Clone</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Produção</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Perdas</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Enraizadas</th>
@@ -198,11 +185,46 @@ export default function Porcentagem() {
               </tr>
             </thead>
             <tbody>
-              {dados.length === 0 ? (
+              {dadosPorClone.length === 0 ? (
                 <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">Sem dados para o período selecionado</td></tr>
-              ) : dados.map((row, i) => (
+              ) : dadosPorClone.map((row, i) => (
                 <tr key={i} className="border-t hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-medium">{viewMode === 'clone' ? (row.clone?.codigo_clone || '—') : (row.lote?.codigo || '—')}</td>
+                  <td className="px-4 py-3 font-medium">{row.clone?.codigo_clone || '—'}</td>
+                  <td className="px-4 py-3 text-right">{row.producao.toLocaleString('pt-BR')}</td>
+                  <td className="px-4 py-3 text-right text-destructive">{row.perdas.toLocaleString('pt-BR')}</td>
+                  <td className="px-4 py-3 text-right">{row.enraizadas.toLocaleString('pt-BR')}</td>
+                  <td className="px-4 py-3 text-center"><RateBadge pct={row.pctEnraizamento} /></td>
+                  <td className="px-4 py-3 text-center"><RateBadge pct={row.pctPerdas} inverso /></td>
+                  <td className="px-4 py-3 text-center"><RateBadge pct={row.pctEficiencia} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Tabela por Lote */}
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Por Lote</h2>
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-muted/50">
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lote</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Produção</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Perdas</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Enraizadas</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Enraizamento %</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Taxa de Perdas</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Eficiência</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dadosPorLote.length === 0 ? (
+                <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">Sem dados para o período selecionado</td></tr>
+              ) : dadosPorLote.map((row, i) => (
+                <tr key={i} className="border-t hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-3 font-medium">{row.lote?.codigo || '—'}</td>
                   <td className="px-4 py-3 text-right">{row.producao.toLocaleString('pt-BR')}</td>
                   <td className="px-4 py-3 text-right text-destructive">{row.perdas.toLocaleString('pt-BR')}</td>
                   <td className="px-4 py-3 text-right">{row.enraizadas.toLocaleString('pt-BR')}</td>
