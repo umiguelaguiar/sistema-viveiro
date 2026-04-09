@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useLotes, useEspecies } from '@/hooks/useNurseryData';
+import { useLotes, useEspecies, useMovimentacoes, useSetores, useClones, usePerdas } from '@/hooks/useNurseryData';
 import PageHeader from '@/components/shared/PageHeader';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -36,11 +36,67 @@ function avg(arr) {
 export default function Indicadores() {
   const { data: lotes = [] } = useLotes();
   const { data: especies = [] } = useEspecies();
+  const { data: movimentacoes = [] } = useMovimentacoes();
+  const { data: setores = [] } = useSetores();
+  const { data: clones = [] } = useClones();
+  const { data: perdas = [] } = usePerdas();
+  const [aba, setAba] = useState('lotes');
 
   const [especieFiltro, setEspecieFiltro] = useState('todos');
   const [anoFiltro, setAnoFiltro] = useState('todos');
+  const [anoTransfFiltro, setAnoTransfFiltro] = useState('todos');
 
   const especieMap = useMemo(() => Object.fromEntries(especies.map(e => [e.id, e])), [especies]);
+  const loteMap = useMemo(() => Object.fromEntries(lotes.map(l => [l.id, l])), [lotes]);
+  const cloneMap = useMemo(() => Object.fromEntries(clones.map(c => [c.id, c])), [clones]);
+
+  // Indicadores por transferência (casa de sombra → rustificação)
+  const transferEnraizamento = useMemo(() => {
+    const transfs = movimentacoes.filter(m => {
+      if (m.tipo !== 'transferencia') return false;
+      const origemNome = setores.find(s => s.id === m.setor_origem_id)?.nome?.toLowerCase() || '';
+      const destinoNome = setores.find(s => s.id === m.setor_destino_id)?.nome?.toLowerCase() || '';
+      return origemNome.includes('sombra') && destinoNome.includes('rustif');
+    });
+
+    return transfs.map(t => {
+      const perdaAssoc = perdas.find(p =>
+        p.lote_id === t.lote_id && p.clone_id === t.clone_id &&
+        p.setor_id === t.setor_origem_id && p.data === t.data &&
+        p.motivo?.includes('Descarte no enraizamento')
+      );
+      const descartadas = perdaAssoc?.quantidade || 0;
+      const enraizadas = t.quantidade + descartadas;
+      const lote = loteMap[t.lote_id];
+      const taxa_enraizamento = lote?.total_estacas > 0 ? calcTaxa(enraizadas, lote.total_estacas) : 0;
+      const taxa_sobrevivencia = enraizadas > 0 ? calcTaxa(t.quantidade, enraizadas) : 100;
+      return {
+        ...t,
+        lote,
+        clone: cloneMap[t.clone_id],
+        descartadas,
+        enraizadas,
+        transferidas: t.quantidade,
+        taxa_enraizamento,
+        taxa_sobrevivencia,
+        status_enraizamento: classificar(taxa_enraizamento, [60, 80]),
+        status_sobrevivencia: classificar(taxa_sobrevivencia, [85, 92]),
+      };
+    });
+  }, [movimentacoes, setores, perdas, loteMap, cloneMap]);
+
+  const anosTransfOptions = useMemo(() => {
+    const anos = new Set(transferEnraizamento.filter(t => t.data).map(t => t.data.substring(0, 4)));
+    return Array.from(anos).sort().reverse();
+  }, [transferEnraizamento]);
+
+  const transferFiltradas = useMemo(() => anoTransfFiltro === 'todos'
+    ? transferEnraizamento
+    : transferEnraizamento.filter(t => t.data?.startsWith(anoTransfFiltro)),
+  [transferEnraizamento, anoTransfFiltro]);
+
+  const mediaTransfEnraiz = avg(transferFiltradas.map(t => t.taxa_enraizamento));
+  const mediaTransfSobrev = avg(transferFiltradas.map(t => t.taxa_sobrevivencia));
 
   const anoOptions = useMemo(() => {
     const anos = new Set(lotes.filter(l => l.data_inicio).map(l => l.data_inicio.substring(0, 4)));
@@ -98,36 +154,81 @@ export default function Indicadores() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Indicadores de Produção" description="Análise de enraizamento, sobrevivência e aproveitamento por lote" />
+      <PageHeader title="Indicadores de Produção" description="Análise de enraizamento, sobrevivência e aproveitamento" />
+
+      {/* Abas */}
+      <div className="flex gap-2 border-b">
+        <button
+          onClick={() => setAba('lotes')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            aba === 'lotes' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >Por Lote</button>
+        <button
+          onClick={() => setAba('transferencias')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            aba === 'transferencias' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >Por Transferência (Sombra → Rustificação)</button>
+      </div>
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-3">
-        <Select value={especieFiltro} onValueChange={setEspecieFiltro}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="Filtrar por espécie" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todas as espécies</SelectItem>
-            {especies.map(e => <SelectItem key={e.id} value={e.id}>{e.nome}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={anoFiltro} onValueChange={setAnoFiltro}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar por ano" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos os anos</SelectItem>
-            {anoOptions.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {aba === 'lotes' && (
+          <>
+            <Select value={especieFiltro} onValueChange={setEspecieFiltro}>
+              <SelectTrigger className="w-48"><SelectValue placeholder="Filtrar por espécie" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todas as espécies</SelectItem>
+                {especies.map(e => <SelectItem key={e.id} value={e.id}>{e.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={anoFiltro} onValueChange={setAnoFiltro}>
+              <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar por ano" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os anos</SelectItem>
+                {anoOptions.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </>
+        )}
+        {aba === 'transferencias' && (
+          <Select value={anoTransfFiltro} onValueChange={setAnoTransfFiltro}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar por ano" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os anos</SelectItem>
+              {anosTransfOptions.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* KPIs médios */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard label="Média Enraizamento" valor={mediaEnraizamento} thresholds={[60, 80]} />
-        <KpiCard label="Média Sobrevivência" valor={mediaSobrevivencia} thresholds={[85, 92]} />
-        <KpiCard label="Média Aproveitamento" valor={mediaAproveitamento} thresholds={[70, 85]} />
-        <KpiCard label="Média Mortalidade" valor={mediaMortalidade} inverso />
-      </div>
+      {aba === 'lotes' && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KpiCard label="Média Enraizamento" valor={mediaEnraizamento} thresholds={[60, 80]} />
+          <KpiCard label="Média Sobrevivência" valor={mediaSobrevivencia} thresholds={[85, 92]} />
+          <KpiCard label="Média Aproveitamento" valor={mediaAproveitamento} thresholds={[70, 85]} />
+          <KpiCard label="Média Mortalidade" valor={mediaMortalidade} inverso />
+        </div>
+      )}
+      {aba === 'transferencias' && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KpiCard label="Média Enraizamento" valor={mediaTransfEnraiz} thresholds={[60, 80]} />
+          <KpiCard label="Média Sobrevivência" valor={mediaTransfSobrev} thresholds={[85, 92]} />
+          <Card className="p-5 border bg-muted/30">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Total Transferências</p>
+            <p className="text-4xl font-bold">{transferFiltradas.length}</p>
+          </Card>
+          <Card className="p-5 border bg-muted/30">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Total Descartadas</p>
+            <p className="text-4xl font-bold text-red-600">{transferFiltradas.reduce((s, t) => s + t.descartadas, 0).toLocaleString('pt-BR')}</p>
+          </Card>
+        </div>
+      )}
 
       {/* Tabela por lote */}
-      {indicadores.length === 0 ? (
+      {aba === 'lotes' && (indicadores.length === 0 ? (
         <Card className="p-10 text-center text-muted-foreground">
           Nenhum lote com dados de produção encontrado. Preencha os campos de indicadores nos lotes.
         </Card>
@@ -185,7 +286,57 @@ export default function Indicadores() {
             </table>
           </div>
         </Card>
-      )}
+      ))}
+
+      {/* Tabela por transferência */}
+      {aba === 'transferencias' && (transferFiltradas.length === 0 ? (
+        <Card className="p-10 text-center text-muted-foreground">
+          Nenhuma transferência de Casa de Sombra → Rustificação encontrada.
+        </Card>
+      ) : (
+        <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/50">
+                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Data</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lote</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Clone</th>
+                  <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Transferidas</th>
+                  <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Descartadas</th>
+                  <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Enraizadas</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">% Enraizamento</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">% Sobrevivência</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transferFiltradas.map((row, i) => (
+                  <tr key={i} className="border-t hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3 text-muted-foreground">{row.data ? row.data.split('-').reverse().join('/') : '—'}</td>
+                    <td className="px-4 py-3 font-semibold">{row.lote?.codigo || '—'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{row.clone?.codigo_clone || '—'}</td>
+                    <td className="px-4 py-3 text-right">{row.transferidas.toLocaleString('pt-BR')}</td>
+                    <td className="px-4 py-3 text-right text-red-600">{row.descartadas.toLocaleString('pt-BR')}</td>
+                    <td className="px-4 py-3 text-right font-semibold">{row.enraizadas.toLocaleString('pt-BR')}</td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className={`font-semibold ${STATUS_COLORS[row.status_enraizamento].text}`}>{row.taxa_enraizamento}%</span>
+                        <StatusBadge status={row.status_enraizamento} />
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className={`font-semibold ${STATUS_COLORS[row.status_sobrevivencia].text}`}>{row.taxa_sobrevivencia}%</span>
+                        <StatusBadge status={row.status_sobrevivencia} />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      ))}
     </div>
   );
 }
