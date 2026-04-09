@@ -53,7 +53,7 @@ export default function Indicadores() {
     return transfs.map(t => {
       const perdaAssoc = perdas.find(p =>
         p.lote_id === t.lote_id && p.clone_id === t.clone_id &&
-        p.setor_id === t.setor_origem_id && p.data === t.data &&
+        p.setor_id === t.setor_destino_id && p.data === t.data &&
         p.motivo?.includes('Descarte no enraizamento')
       );
       const descartadas = perdaAssoc?.quantidade || 0;
