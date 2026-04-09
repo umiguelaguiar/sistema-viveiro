@@ -89,6 +89,7 @@ export default function Transferencia() {
     queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
     queryClient.invalidateQueries({ queryKey: ['producoes'] });
     queryClient.invalidateQueries({ queryKey: ['perdas'] });
+    queryClient.invalidateQueries({ queryKey: ['lotes'] });
     setForm({ lote_id: '', clone_id: '', quantidade: '', setor_origem_id: '', setor_destino_id: '', data: todayLocal(), descartadas: '' });
     setOpen(false);
   };

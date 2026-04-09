@@ -4,8 +4,9 @@ import { base44 } from '@/api/base44Client';
 export function useEspecies() {
   return useQuery({
     queryKey: ['especies'],
-    queryFn: () => base44.entities.Especie.list('-created_date'),
-    initialData: [],
+    queryFn: () => base44.entities.Especie.list(),
+    placeholderData: [],
+    staleTime: 0,
   });
 }
 
