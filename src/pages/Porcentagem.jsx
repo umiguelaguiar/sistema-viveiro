@@ -45,15 +45,22 @@ export default function Porcentagem() {
   const { data: lotes } = useLotes();
 
   const [mesFiltro, setMesFiltro] = useState('todos');
+  const [cloneFiltro, setCloneFiltro] = useState('todos');
+  const [loteFiltro, setLoteFiltro] = useState('todos');
   const [viewMode, setViewMode] = useState('clone');
 
   const allItems = useMemo(() => [...producoes, ...perdas], [producoes, perdas]);
   const monthOptions = useMemo(() => getMonthOptions(allItems), [allItems]);
 
-  const filterByMonth = (items) => mesFiltro === 'todos' ? items : items.filter(i => i.data && i.data.startsWith(mesFiltro));
+  const applyFilters = (items) => items.filter(i => {
+    if (mesFiltro !== 'todos' && !(i.data && i.data.startsWith(mesFiltro))) return false;
+    if (cloneFiltro !== 'todos' && i.clone_id !== cloneFiltro) return false;
+    if (loteFiltro !== 'todos' && i.lote_id !== loteFiltro) return false;
+    return true;
+  });
 
-  const producoesFiltradas = useMemo(() => filterByMonth(producoes), [producoes, mesFiltro]);
-  const perdasFiltradas = useMemo(() => filterByMonth(perdas), [perdas, mesFiltro]);
+  const producoesFiltradas = useMemo(() => applyFilters(producoes), [producoes, mesFiltro, cloneFiltro, loteFiltro]);
+  const perdasFiltradas = useMemo(() => applyFilters(perdas), [perdas, mesFiltro, cloneFiltro, loteFiltro]);
 
   const cloneMap = useMemo(() => Object.fromEntries(clones.map(c => [c.id, c])), [clones]);
   const loteMap = useMemo(() => Object.fromEntries(lotes.map(l => [l.id, l])), [lotes]);
@@ -137,12 +144,28 @@ export default function Porcentagem() {
       {/* Filtros */}
       <div className="flex flex-wrap gap-3 mb-6">
         <Select value={mesFiltro} onValueChange={setMesFiltro}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="Filtrar por mês" /></SelectTrigger>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar por mês" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos os meses</SelectItem>
             {monthOptions.map(m => (
               <SelectItem key={m} value={m}>{format(new Date(m + '-01T12:00:00'), 'MMMM yyyy', { locale: ptBR }).replace(/^\w/, c => c.toUpperCase())}</SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={cloneFiltro} onValueChange={setCloneFiltro}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar por clone" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os clones</SelectItem>
+            {clones.map(c => <SelectItem key={c.id} value={c.id}>{c.codigo_clone}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        <Select value={loteFiltro} onValueChange={setLoteFiltro}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar por lote" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os lotes</SelectItem>
+            {lotes.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo}</SelectItem>)}
           </SelectContent>
         </Select>
 
