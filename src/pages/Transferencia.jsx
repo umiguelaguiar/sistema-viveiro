@@ -68,18 +68,18 @@ export default function Transferencia() {
         });
         queryClient.invalidateQueries({ queryKey: ['lotes'] });
 
-        // Registra as mudas descartadas como perda
+        // Registra as mudas descartadas como perda no setor de DESTINO (rustificação)
         if (descartadas > 0) {
           await base44.entities.Perda.create({
             lote_id: form.lote_id,
             clone_id: form.clone_id,
-            setor_id: form.setor_origem_id,
+            setor_id: form.setor_destino_id,
             quantidade: descartadas,
             motivo: 'Descarte no enraizamento (transferência para rustificação)',
             data: form.data,
           });
           queryClient.invalidateQueries({ queryKey: ['perdas'] });
-          toast.success(`Indicadores atualizados e ${descartadas} mudas descartadas registradas como perda.`);
+          toast.success(`Indicadores atualizados e ${descartadas} mudas descartadas registradas como perda no destino.`);
         } else {
           toast.success(`Indicadores do lote atualizados: ${novas_enraizadas} enraizadas, ${novas_sobreviventes} sobreviventes`);
         }
@@ -104,7 +104,7 @@ export default function Transferencia() {
         const perdaAssociada = perdas.find(p =>
           p.lote_id === mov.lote_id &&
           p.clone_id === mov.clone_id &&
-          p.setor_id === mov.setor_origem_id &&
+          p.setor_id === mov.setor_destino_id &&
           p.data === mov.data &&
           p.motivo?.includes('Descarte no enraizamento')
         );
