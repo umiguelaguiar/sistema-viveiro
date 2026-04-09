@@ -58,7 +58,7 @@ export default function Indicadores() {
       );
       const descartadas = perdaAssoc?.quantidade || 0;
       const transferidas = t.quantidade;
-      const enraizadas = transferidas + descartadas;
+      const enraizadas = transferidas - descartadas;
       // % Enraizamento = (transferidas - descartadas) / transferidas
       const taxa_enraizamento = calcTaxa(transferidas - descartadas, transferidas);
       // % Sobrevivência = transferidas / enraizadas
