@@ -23,8 +23,10 @@ export default function Transferencia() {
   const { data: perdas } = usePerdas();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const todayLocal = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
-  const [form, setForm] = useState({ lote_id: '', clone_id: '', quantidade: '', setor_origem_id: '', setor_destino_id: '', data: todayLocal(), descartadas: '' });
+  const emptyForm = () => ({ lote_id: '', clone_id: '', quantidade: '', setor_origem_id: '', setor_destino_id: '', data: todayLocal(), descartadas: '' });
+  const [form, setForm] = useState(emptyForm());
 
   const stock = useMemo(() => calculateStock(producoes, movimentacoes, perdas), [producoes, movimentacoes, perdas]);
 
@@ -39,10 +41,26 @@ export default function Transferencia() {
     ? getStockForSetorCloneLote(stock, form.setor_origem_id, form.clone_id, form.lote_id)
     : 0;
 
+  const handleEdit = (row) => {
+    setEditingId(row.id);
+    setForm({ lote_id: row.lote_id, clone_id: row.clone_id, quantidade: row.quantidade, setor_origem_id: row.setor_origem_id, setor_destino_id: row.setor_destino_id, data: row.data, descartadas: '' });
+    setOpen(true);
+  };
+
   const handleSave = async () => {
     const qty = Number(form.quantidade);
-    if (qty > disponivel) {
+    if (!editingId && qty > disponivel) {
       toast.error(`Estoque insuficiente. Disponível: ${disponivel}`);
+      return;
+    }
+    if (editingId) {
+      await base44.entities.Movimentacao.update(editingId, {
+        lote_id: form.lote_id, clone_id: form.clone_id, quantidade: qty,
+        setor_origem_id: form.setor_origem_id, setor_destino_id: form.setor_destino_id,
+        data: form.data, tipo: 'transferencia',
+      });
+      queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
+      setForm(emptyForm()); setEditingId(null); setOpen(false);
       return;
     }
     await base44.entities.Movimentacao.create({
@@ -90,7 +108,8 @@ export default function Transferencia() {
     queryClient.invalidateQueries({ queryKey: ['producoes'] });
     queryClient.invalidateQueries({ queryKey: ['perdas'] });
     queryClient.invalidateQueries({ queryKey: ['lotes'] });
-    setForm({ lote_id: '', clone_id: '', quantidade: '', setor_origem_id: '', setor_destino_id: '', data: todayLocal(), descartadas: '' });
+    setForm(emptyForm());
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -146,11 +165,11 @@ export default function Transferencia() {
           </Button>
         }
       />
-      <DataTable columns={columns} data={transferencias} isLoading={isLoading} onDelete={handleDelete} />
+      <DataTable columns={columns} data={transferencias} isLoading={isLoading} onDelete={handleDelete} onEdit={handleEdit} />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Nova Transferência</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingId ? 'Editar Transferência' : 'Nova Transferência'}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Clone</Label>
@@ -214,7 +233,7 @@ export default function Transferencia() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => { setOpen(false); setEditingId(null); setForm(emptyForm()); }}>Cancelar</Button>
             <Button onClick={handleSave} disabled={!form.lote_id || !form.clone_id || !form.quantidade || !form.setor_origem_id || !form.setor_destino_id}>Salvar</Button>
           </DialogFooter>
         </DialogContent>

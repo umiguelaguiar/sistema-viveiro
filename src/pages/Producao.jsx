@@ -19,20 +19,30 @@ export default function Producao() {
   const { data: setores } = useSetores();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const todayLocal = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
-  const [form, setForm] = useState({ lote_id: '', clone_id: '', quantidade: '', bandejas: '', setor_id: '', data: todayLocal() });
+  const emptyForm = () => ({ lote_id: '', clone_id: '', quantidade: '', bandejas: '', setor_id: '', data: todayLocal() });
+  const [form, setForm] = useState(emptyForm());
 
 
+
+  const handleEdit = (row) => {
+    setEditingId(row.id);
+    setForm({ lote_id: row.lote_id, clone_id: row.clone_id, quantidade: row.quantidade, bandejas: row.quantidade ? String(Math.ceil(row.quantidade / 187)) : '', setor_id: row.setor_id, data: row.data });
+    setOpen(true);
+  };
 
   const handleSave = async () => {
-    await base44.entities.Producao.create({
-      ...form,
-      quantidade: Number(form.quantidade)
-    });
+    if (editingId) {
+      await base44.entities.Producao.update(editingId, { ...form, quantidade: Number(form.quantidade) });
+    } else {
+      await base44.entities.Producao.create({ ...form, quantidade: Number(form.quantidade) });
+    }
     queryClient.invalidateQueries({ queryKey: ['producoes'] });
     queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
     queryClient.invalidateQueries({ queryKey: ['perdas'] });
-    setForm({ lote_id: '', clone_id: '', quantidade: '', bandejas: '', setor_id: '', data: todayLocal() });
+    setForm(emptyForm());
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -74,11 +84,11 @@ export default function Producao() {
           </Button>
         }
       />
-      <DataTable columns={columns} data={producoes} isLoading={isLoading} onDelete={handleDelete} />
+      <DataTable columns={columns} data={producoes} isLoading={isLoading} onDelete={handleDelete} onEdit={handleEdit} />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Nova Produção</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingId ? 'Editar Produção' : 'Nova Produção'}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Clone</Label>
@@ -118,7 +128,7 @@ export default function Producao() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => { setOpen(false); setEditingId(null); setForm(emptyForm()); }}>Cancelar</Button>
             <Button onClick={handleSave} disabled={!form.lote_id || !form.clone_id || !form.quantidade || !form.setor_id}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
