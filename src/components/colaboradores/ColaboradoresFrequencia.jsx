@@ -94,6 +94,12 @@ export default function ColaboradoresFrequencia() {
     } else {
       await base44.entities.Frequencia.create(payload);
     }
+    // Se estiver pagando uma falta, apenas adicionar observação na falta original (sem alterar o status)
+    if (form.pagando_falta && form.data_falta_paga) {
+      await base44.entities.Frequencia.update(form.data_falta_paga, {
+        observacao: `Falta compensada em ${form.data?.split('-').reverse().join('/')}`
+      });
+    }
     qc.invalidateQueries({ queryKey: ['frequencias'] });
     setOpen(false); setEditing(null); setForm(emptyForm());
   };
