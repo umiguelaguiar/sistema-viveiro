@@ -43,7 +43,15 @@ export default function Transferencia() {
 
   const handleEdit = (row) => {
     setEditingId(row.id);
-    setForm({ lote_id: row.lote_id, clone_id: row.clone_id, quantidade: row.quantidade, setor_origem_id: row.setor_origem_id, setor_destino_id: row.setor_destino_id, data: row.data, descartadas: '' });
+    const origemNome = setores.find(s => s.id === row.setor_origem_id)?.nome?.toLowerCase() || '';
+    const destinoNome = setores.find(s => s.id === row.setor_destino_id)?.nome?.toLowerCase() || '';
+    const isEnraiz = origemNome.includes('sombra') && destinoNome.includes('rustif');
+    const perdaAssociada = isEnraiz ? perdas.find(p =>
+      p.lote_id === row.lote_id && p.clone_id === row.clone_id &&
+      p.setor_id === row.setor_destino_id && p.data === row.data &&
+      p.motivo?.includes('Descarte no enraizamento')
+    ) : null;
+    setForm({ lote_id: row.lote_id, clone_id: row.clone_id, quantidade: row.quantidade, setor_origem_id: row.setor_origem_id, setor_destino_id: row.setor_destino_id, data: row.data, descartadas: perdaAssociada ? String(perdaAssociada.quantidade) : '' });
     setOpen(true);
   };
 
