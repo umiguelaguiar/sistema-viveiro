@@ -29,8 +29,13 @@ export default function ColaboradoresBancoHoras() {
       const cfPagamento = freqPeriodoPagamento.filter(f => f.colaborador_id === c.id && f.status === 'presente');
       const cf = cfBanco; // para diasPresente usamos tudo
       const totalExtras = cf.reduce((s, f) => s + (f.horas_extras || 0), 0);
-      // Banco de horas: sem filtro de período
-      const extrasBanco = cfBanco.filter(f => f.tipo_hora_extra === 'banco_horas' && !f.banco_horas_utilizado).reduce((s, f) => s + (f.horas_extras || 0), 0);
+      // Banco de horas: não utilizados (acumulado geral) + utilizados somente do período selecionado
+      const extrasBanco = cfBanco.filter(f =>
+        f.tipo_hora_extra === 'banco_horas' && (
+          !f.banco_horas_utilizado ||
+          (f.banco_horas_utilizado && periodoKey !== 'todos' && dataEstaNoPeriodo(f.data_utilizacao_banco, periodoKey))
+        )
+      ).reduce((s, f) => s + (f.horas_extras || 0), 0);
       // Pagamento: filtrado pelo período
       const extrasPagamento = cfPagamento.filter(f => f.tipo_hora_extra === 'pagamento').reduce((s, f) => s + (f.horas_extras || 0), 0);
       const totalTrabalhadas = cf.reduce((s, f) => s + (f.horas_trabalhadas || 0), 0);
@@ -50,7 +55,15 @@ export default function ColaboradoresBancoHoras() {
   const queryClient = useQueryClient();
 
   const detalhes = colabDetalhe
-    ? frequencias.filter(f => f.colaborador_id === colabDetalhe && f.horas_extras > 0 && f.tipo_hora_extra === 'banco_horas')
+    ? frequencias.filter(f =>
+        f.colaborador_id === colabDetalhe &&
+        f.horas_extras > 0 &&
+        f.tipo_hora_extra === 'banco_horas' &&
+        (
+          !f.banco_horas_utilizado ||
+          (f.banco_horas_utilizado && periodoKey !== 'todos' && dataEstaNoPeriodo(f.data_utilizacao_banco, periodoKey))
+        )
+      )
     : [];
 
   const handleConsumirDia = async (freq, checked) => {
