@@ -1,0 +1,88 @@
+{
+  "name": "Frequencia",
+  "type": "object",
+  "properties": {
+    "colaborador_id": {
+      "type": "string",
+      "description": "ID do colaborador"
+    },
+    "data": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do registro"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "presente",
+        "falta",
+        "atestado",
+        "folga",
+        "afastado"
+      ],
+      "description": "Status de presen\u00e7a"
+    },
+    "hora_entrada": {
+      "type": "string",
+      "description": "Hora de entrada (HH:MM)"
+    },
+    "hora_saida": {
+      "type": "string",
+      "description": "Hora de sa\u00edda (HH:MM)"
+    },
+    "e_plantao": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u00c9 plant\u00e3o (sem desconto de almo\u00e7o)"
+    },
+    "horas_trabalhadas": {
+      "type": "number",
+      "description": "Total de horas trabalhadas"
+    },
+    "horas_extras": {
+      "type": "number",
+      "description": "Total de horas extras"
+    },
+    "tipo_hora_extra": {
+      "type": "string",
+      "enum": [
+        "banco_horas",
+        "pagamento"
+      ],
+      "description": "Como contabilizar horas extras"
+    },
+    "banco_horas_utilizado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indica que as horas do banco foram utilizadas pelo colaborador"
+    },
+    "data_utilizacao_banco": {
+      "type": "string",
+      "format": "date",
+      "description": "Data em que o banco de horas foi utilizado"
+    },
+    "pagando_falta": {
+      "type": "boolean",
+      "default": false,
+      "description": "Este registro est\u00e1 compensando uma falta anterior"
+    },
+    "data_falta_paga": {
+      "type": "string",
+      "description": "ID do registro de falta que est\u00e1 sendo compensado"
+    },
+    "falta_compensada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Esta falta foi compensada por um dia de trabalho extra"
+    },
+    "observacao": {
+      "type": "string",
+      "description": "Observa\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "colaborador_id",
+    "data",
+    "status"
+  ]
+}

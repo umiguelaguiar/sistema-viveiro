@@ -94,9 +94,10 @@ export default function ColaboradoresFrequencia() {
     } else {
       await base44.entities.Frequencia.create(payload);
     }
-    // Se estiver pagando uma falta, apenas adicionar observação na falta original (sem alterar o status)
+    // Se estiver pagando uma falta, marcar a falta original como compensada (mantém status falta, mas desconta)
     if (form.pagando_falta && form.data_falta_paga) {
       await base44.entities.Frequencia.update(form.data_falta_paga, {
+        falta_compensada: true,
         observacao: `Falta compensada em ${form.data?.split('-').reverse().join('/')}`
       });
     }
@@ -105,6 +106,13 @@ export default function ColaboradoresFrequencia() {
   };
 
   const del = async (registro) => {
+    // Se o registro pagava uma falta, reverter o campo falta_compensada
+    if (registro.pagando_falta && registro.data_falta_paga) {
+      await base44.entities.Frequencia.update(registro.data_falta_paga, {
+        falta_compensada: false,
+        observacao: ''
+      });
+    }
     await base44.entities.Frequencia.delete(registro.id);
     qc.invalidateQueries({ queryKey: ['frequencias'] });
   };
@@ -132,7 +140,7 @@ export default function ColaboradoresFrequencia() {
 
   // Totais do período filtrado
   const presentes = freqFiltradas.filter(f => f.status === 'presente').length;
-  const faltas = freqFiltradas.filter(f => f.status === 'falta').length;
+  const faltas = freqFiltradas.filter(f => f.status === 'falta' && !f.falta_compensada).length;
   const atestados = freqFiltradas.filter(f => f.status === 'atestado').length;
   const folgas = freqFiltradas.filter(f => f.status === 'folga').length;
 
@@ -308,7 +316,7 @@ function ColabCard({ colab, registros, onEdit, onDelete }) {
   const [expanded, setExpanded] = useState(false);
 
   const presentes = registros.filter(f => f.status === 'presente').length;
-  const faltas = registros.filter(f => f.status === 'falta').length;
+  const faltas = registros.filter(f => f.status === 'falta' && !f.falta_compensada).length;
   const atestados = registros.filter(f => f.status === 'atestado').length;
   const folgas = registros.filter(f => f.status === 'folga').length;
   const totalHoras = registros.reduce((sum, f) => sum + (f.horas_trabalhadas || 0), 0);
@@ -363,6 +371,7 @@ function ColabCard({ colab, registros, onEdit, onDelete }) {
                     </div>
                   )}
                   {f.pagando_falta && <Badge variant="outline" className="text-xs text-blue-600 border-blue-300 mt-0.5">Compensou falta</Badge>}
+                  {f.falta_compensada && <Badge variant="outline" className="text-xs text-green-600 border-green-300 mt-0.5">Falta compensada</Badge>}
                   {f.observacao && <p className="text-xs text-muted-foreground italic mt-0.5">{f.observacao}</p>}
                 </div>
                 <div className="flex gap-1 ml-2">
