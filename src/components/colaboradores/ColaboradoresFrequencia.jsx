@@ -94,22 +94,11 @@ export default function ColaboradoresFrequencia() {
     } else {
       await base44.entities.Frequencia.create(payload);
     }
-    // Se estiver pagando uma falta, marcar a falta compensada com a data do dia que compensou
-    if (form.pagando_falta && form.data_falta_paga) {
-      await base44.entities.Frequencia.update(form.data_falta_paga, {
-        status: 'presente',
-        observacao: `Falta compensada em ${form.data?.split('-').reverse().join('/')}`
-      });
-    }
     qc.invalidateQueries({ queryKey: ['frequencias'] });
     setOpen(false); setEditing(null); setForm(emptyForm());
   };
 
   const del = async (registro) => {
-    // Se o registro pagava uma falta, reverter a falta (buscar pelo campo data_falta_paga)
-    if (registro.pagando_falta && registro.data_falta_paga) {
-      await base44.entities.Frequencia.update(registro.data_falta_paga, { status: 'falta', observacao: '' });
-    }
     await base44.entities.Frequencia.delete(registro.id);
     qc.invalidateQueries({ queryKey: ['frequencias'] });
   };
