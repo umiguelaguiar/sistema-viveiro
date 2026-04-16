@@ -116,17 +116,19 @@ export default function TabelaCompleta({ prodMes, perdasMes, expMes, transfMes, 
                   <tr className="border-b text-muted-foreground text-xs uppercase">
                     <th className="text-left py-2 pr-4">Data</th>
                     <th className="text-left py-2 pr-4">Clone</th>
+                    <th className="text-left py-2 pr-4">Lote</th>
                     <th className="text-left py-2 pr-4">Origem</th>
                     <th className="text-left py-2 pr-4">Destino</th>
                     <th className="text-right py-2">Qtd</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {transfMes.length === 0 ? <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">Sem registros</td></tr>
+                  {transfMes.length === 0 ? <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">Sem registros</td></tr>
                     : transfMes.map(m => (
                       <tr key={m.id} className="border-b last:border-0 hover:bg-muted/20">
                         <td className="py-2 pr-4">{fmt(m.data)}</td>
                         <td className="py-2 pr-4">{cloneMap[m.clone_id] || '—'}</td>
+                        <td className="py-2 pr-4">{loteMap[m.lote_id] || '—'}</td>
                         <td className="py-2 pr-4">{setorMap[m.setor_origem_id] || '—'}</td>
                         <td className="py-2 pr-4">{setorMap[m.setor_destino_id] || '—'}</td>
                         <td className="py-2 text-right font-medium text-amber-600">{m.quantidade?.toLocaleString('pt-BR')}</td>

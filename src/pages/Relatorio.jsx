@@ -56,8 +56,23 @@ export default function Relatorio() {
 
   const prodMes = useMemo(() => applyFilters(producoes.filter(p => inInterval(p.data))), [producoes, intervalo, cloneFiltro, loteFiltro, setorFiltro]);
   const perdasMes = useMemo(() => applyFilters(perdas.filter(p => inInterval(p.data))), [perdas, intervalo, cloneFiltro, loteFiltro, setorFiltro]);
-  const expMes = useMemo(() => applyFilters(movimentacoes.filter(m => m.tipo === 'expedicao' && inInterval(m.data))), [movimentacoes, intervalo, cloneFiltro, loteFiltro, setorFiltro]);
-  const transfMes = useMemo(() => applyFilters(movimentacoes.filter(m => m.tipo === 'transferencia' && inInterval(m.data))), [movimentacoes, intervalo, cloneFiltro, loteFiltro, setorFiltro]);
+
+  // Expedições: não têm setor_id; filtrar apenas por clone e lote
+  const expMes = useMemo(() => movimentacoes.filter(m => m.tipo === 'expedicao' && inInterval(m.data))
+    .filter(r => {
+      if (cloneFiltro !== 'todos' && r.clone_id !== cloneFiltro) return false;
+      if (loteFiltro !== 'todos' && r.lote_id !== loteFiltro) return false;
+      return true;
+    }), [movimentacoes, intervalo, cloneFiltro, loteFiltro]);
+
+  // Transferências: usar setor_origem_id como campo de setor
+  const transfMes = useMemo(() => movimentacoes.filter(m => m.tipo === 'transferencia' && inInterval(m.data))
+    .filter(r => {
+      if (cloneFiltro !== 'todos' && r.clone_id !== cloneFiltro) return false;
+      if (loteFiltro !== 'todos' && r.lote_id !== loteFiltro) return false;
+      if (setorFiltro !== 'todos' && r.setor_origem_id !== setorFiltro) return false;
+      return true;
+    }), [movimentacoes, intervalo, cloneFiltro, loteFiltro, setorFiltro]);
 
   const totalProd = prodMes.reduce((s, p) => s + (p.quantidade || 0), 0);
   const totalPerdas = perdasMes.reduce((s, p) => s + (p.quantidade || 0), 0);
@@ -353,10 +368,27 @@ export default function Relatorio() {
       if (expMes.length > 0) {
         secao('Registros de Expedição');
         tabela(
-          ['Data', 'Clone', 'Quantidade'],
+          ['Data', 'Clone', 'Lote', 'Quantidade'],
           expMes.slice(0, 15).map(m => [
             m.data ? format(parseISO(m.data), 'dd/MM/yyyy') : '-',
             cloneMap[m.clone_id] || '-',
+            loteMap[m.lote_id] || '-',
+            (m.quantidade || 0).toLocaleString('pt-BR')
+          ])
+        );
+      }
+
+      // --- 8b. Transferências ---
+      if (transfMes.length > 0) {
+        secao('Registros de Transferência');
+        tabela(
+          ['Data', 'Clone', 'Lote', 'Origem', 'Destino', 'Qtd'],
+          transfMes.slice(0, 15).map(m => [
+            m.data ? format(parseISO(m.data), 'dd/MM/yyyy') : '-',
+            cloneMap[m.clone_id] || '-',
+            loteMap[m.lote_id] || '-',
+            setorMap[m.setor_origem_id] || '-',
+            setorMap[m.setor_destino_id] || '-',
             (m.quantidade || 0).toLocaleString('pt-BR')
           ])
         );
