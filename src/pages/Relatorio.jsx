@@ -352,16 +352,41 @@ export default function Relatorio() {
       // --- 7. Perdas ---
       if (perdasMes.length > 0) {
         secao('Registros de Perdas');
-        tabela(
-          ['Data', 'Clone', 'Setor', 'Qtd', 'Motivo'],
-          perdasMes.slice(0, 15).map(p => [
+        const colWidths = [22, 28, 28, 14, contentW - 22 - 28 - 28 - 14];
+        checkY(10);
+        const perdaHeaders = ['Data', 'Clone', 'Setor', 'Qtd', 'Motivo'];
+        pdf.setFillColor(...cor.cinzaEsc);
+        pdf.rect(margin, y, contentW, 7, 'F');
+        pdf.setTextColor(...cor.branco);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8);
+        let xh = margin;
+        perdaHeaders.forEach((h, i) => { pdf.text(h, xh + 2, y + 5); xh += colWidths[i]; });
+        y += 7;
+        perdasMes.slice(0, 15).forEach((p, ri) => {
+          const motivo = p.motivo || '-';
+          const motivoLines = pdf.splitTextToSize(motivo, colWidths[4] - 4);
+          const rowH = Math.max(6, motivoLines.length * 4.5);
+          checkY(rowH);
+          pdf.setFillColor(ri % 2 === 0 ? 250 : 245, ri % 2 === 0 ? 250 : 248, ri % 2 === 0 ? 250 : 245);
+          pdf.rect(margin, y, contentW, rowH, 'F');
+          pdf.setDrawColor(...cor.cinzaClaro);
+          pdf.rect(margin, y, contentW, rowH, 'S');
+          pdf.setTextColor(...cor.cinzaEsc);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(7.5);
+          const cells = [
             p.data ? format(parseISO(p.data), 'dd/MM/yyyy') : '-',
             cloneMap[p.clone_id] || '-',
             setorMap[p.setor_id] || '-',
             (p.quantidade || 0).toLocaleString('pt-BR'),
-            p.motivo || '-'
-          ])
-        );
+          ];
+          let xc = margin;
+          cells.forEach((cell, i) => { pdf.text(String(cell), xc + 2, y + 4.2); xc += colWidths[i]; });
+          pdf.text(motivoLines, xc + 2, y + 4.2);
+          y += rowH;
+        });
+        y += 3;
       }
 
       // --- 8. Expedições ---
