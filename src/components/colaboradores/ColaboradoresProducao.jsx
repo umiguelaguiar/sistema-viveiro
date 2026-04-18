@@ -13,14 +13,15 @@ import { getPeriodos, dataEstaNoPeriodo } from '@/lib/periodoColaboradores';
 const todayLocal = () => new Date().toLocaleDateString('en-CA');
 const ATIVIDADES = { tubete: 'Tubete', selecao: 'Seleção', irrigacao: 'Irrigação', expedicao: 'Expedição', coleta: 'Coleta', plantio: 'Plantio' };
 const ATIV_COLORS = { tubete: 'default', selecao: 'secondary', irrigacao: 'outline', expedicao: 'destructive', coleta: 'secondary', plantio: 'default' };
-const periodos = getPeriodos(12);
 const emptyForm = () => ({ colaborador_id: '', data: todayLocal(), atividade: 'tubete', quantidade: '', observacao: '' });
 
 export default function ColaboradoresProducao() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm());
-  const [periodoKey, setPeriodoKey] = useState(periodos[0]?.key || '');
+  const periodos = getPeriodos(14);
+  // índice 0 = próximo mês futuro, índice 1 = mês corrente
+  const [periodoKey, setPeriodoKey] = useState(periodos[1]?.key || periodos[0]?.key || '');
 
   const { data: colaboradores = [] } = useQuery({ queryKey: ['colaboradores'], queryFn: () => base44.entities.Colaborador.list() });
   const { data: producoes = [] } = useQuery({ queryKey: ['producoes-colab'], queryFn: () => base44.entities.ProducaoColaborador.list('-data', 1000) });

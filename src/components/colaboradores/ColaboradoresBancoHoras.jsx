@@ -9,10 +9,10 @@ import { Clock, TrendingUp, Banknote, CheckCircle2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getPeriodos, dataEstaNoPeriodo, getPeriodoDatasLabel } from '@/lib/periodoColaboradores';
 
-const periodos = getPeriodos(12);
-
 export default function ColaboradoresBancoHoras() {
-  const [periodoKey, setPeriodoKey] = useState(periodos[0]?.key || '');
+  const periodos = getPeriodos(14);
+  // índice 0 = próximo mês futuro, índice 1 = mês corrente
+  const [periodoKey, setPeriodoKey] = useState(periodos[1]?.key || periodos[0]?.key || '');
 
   const { data: colaboradores = [] } = useQuery({ queryKey: ['colaboradores'], queryFn: () => base44.entities.Colaborador.list() });
   const { data: frequencias = [] } = useQuery({ queryKey: ['frequencias'], queryFn: () => base44.entities.Frequencia.list('-data', 1000) });
