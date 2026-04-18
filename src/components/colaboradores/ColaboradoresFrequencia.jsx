@@ -47,13 +47,14 @@ const emptyForm = (data = todayLocal()) => ({
   observacao: ''
 });
 
-const periodos = getPeriodos(12);
-
 export default function ColaboradoresFrequencia() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm());
+
+  // Calcular períodos dentro do componente para incluir o período atual dinamicamente
+  const periodos = getPeriodos(14);
   const [periodoKey, setPeriodoKey] = useState(periodos[0]?.key || '');
   const [filtroColab, setFiltroColab] = useState('todos');
 
