@@ -55,7 +55,8 @@ export default function ColaboradoresFrequencia() {
 
   // Calcular períodos dentro do componente para incluir o período atual dinamicamente
   const periodos = getPeriodos(14);
-  const [periodoKey, setPeriodoKey] = useState(periodos[0]?.key || '');
+  // Pré-selecionar sempre o período corrente (índice 1, pois índice 0 é o próximo mês futuro)
+  const [periodoKey, setPeriodoKey] = useState(periodos[1]?.key || periodos[0]?.key || '');
   const [filtroColab, setFiltroColab] = useState('todos');
 
   const { data: colaboradores = [] } = useQuery({ queryKey: ['colaboradores'], queryFn: () => base44.entities.Colaborador.list() });
