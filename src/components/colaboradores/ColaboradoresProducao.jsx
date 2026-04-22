@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Trash2 } from 'lucide-react';
-import { getPeriodos, dataEstaNoPeriodo } from '@/lib/periodoColaboradores';
+import { dataEstaNoPeriodo } from '@/lib/periodoColaboradores';
+import { usePeriodosComRegistros } from '@/hooks/usePeriodosComRegistros';
 
 const todayLocal = () => new Date().toLocaleDateString('en-CA');
 const ATIVIDADES = { tubete: 'Tubete', selecao: 'Seleção', irrigacao: 'Irrigação', expedicao: 'Expedição', coleta: 'Coleta', plantio: 'Plantio' };
@@ -19,9 +20,9 @@ export default function ColaboradoresProducao() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm());
-  const periodos = getPeriodos(14);
-  // índice 0 = próximo mês futuro, índice 1 = mês corrente
-  const [periodoKey, setPeriodoKey] = useState(periodos[1]?.key || periodos[0]?.key || '');
+  const { periodos, periodoCorrente } = usePeriodosComRegistros(producoes);
+  const [periodoKey, setPeriodoKey] = useState('');
+  useEffect(() => { if (!periodoKey && periodoCorrente) setPeriodoKey(periodoCorrente.key); }, [periodoCorrente]);
 
   const { data: colaboradores = [] } = useQuery({ queryKey: ['colaboradores'], queryFn: () => base44.entities.Colaborador.list() });
   const { data: producoes = [] } = useQuery({ queryKey: ['producoes-colab'], queryFn: () => base44.entities.ProducaoColaborador.list('-data', 1000) });

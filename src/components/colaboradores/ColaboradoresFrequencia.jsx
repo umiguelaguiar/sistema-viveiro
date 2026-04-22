@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2, Clock, ChevronDown, ChevronUp } from 'lucide-react';
-import { getPeriodos, dataEstaNoPeriodo, getPeriodoDatasLabel } from '@/lib/periodoColaboradores';
+import { dataEstaNoPeriodo, getPeriodoDatasLabel } from '@/lib/periodoColaboradores';
+import { usePeriodosComRegistros } from '@/hooks/usePeriodosComRegistros';
 
 const todayLocal = () => new Date().toLocaleDateString('en-CA');
 
@@ -53,10 +54,9 @@ export default function ColaboradoresFrequencia() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm());
 
-  // Calcular períodos dentro do componente para incluir o período atual dinamicamente
-  const periodos = getPeriodos(14);
-  // Pré-selecionar sempre o período corrente (índice 1, pois índice 0 é o próximo mês futuro)
-  const [periodoKey, setPeriodoKey] = useState(periodos[1]?.key || periodos[0]?.key || '');
+  const { periodos, periodoCorrente } = usePeriodosComRegistros(frequencias);
+  const [periodoKey, setPeriodoKey] = useState('');
+  useEffect(() => { if (!periodoKey && periodoCorrente) setPeriodoKey(periodoCorrente.key); }, [periodoCorrente]);
   const [filtroColab, setFiltroColab] = useState('todos');
 
   const { data: colaboradores = [] } = useQuery({ queryKey: ['colaboradores'], queryFn: () => base44.entities.Colaborador.list() });

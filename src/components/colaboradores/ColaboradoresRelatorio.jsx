@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { getPeriodos, dataEstaNoPeriodo, formatPeriodoLabel, getPeriodoDatasLabel } from '@/lib/periodoColaboradores';
+import { dataEstaNoPeriodo, formatPeriodoLabel, getPeriodoDatasLabel } from '@/lib/periodoColaboradores';
+import { usePeriodosComRegistros } from '@/hooks/usePeriodosComRegistros';
 
 const ATIVIDADES = { tubete: 'Tubete', selecao: 'Seleção', irrigacao: 'Irrigação', expedicao: 'Expedição' };
 export default function ColaboradoresRelatorio() {
-  const periodos = getPeriodos(14);
-  // índice 0 = próximo mês futuro, índice 1 = mês corrente
-  const [periodoKey, setPeriodoKey] = useState(periodos[1]?.key || periodos[0]?.key || '');
+  const [periodoKey, setPeriodoKey] = useState('');
 
   const { data: colaboradores = [] } = useQuery({ queryKey: ['colaboradores'], queryFn: () => base44.entities.Colaborador.list() });
   const { data: frequencias = [] } = useQuery({ queryKey: ['frequencias'], queryFn: () => base44.entities.Frequencia.list('-data', 1000) });
   const { data: producoes = [] } = useQuery({ queryKey: ['producoes-colab'], queryFn: () => base44.entities.ProducaoColaborador.list('-data', 1000) });
+
+  const { periodos, periodoCorrente } = usePeriodosComRegistros(frequencias);
+  useEffect(() => { if (!periodoKey && periodoCorrente) setPeriodoKey(periodoCorrente.key); }, [periodoCorrente]);
 
   const freqPeriodo = periodoKey === 'todos' ? frequencias : frequencias.filter(f => dataEstaNoPeriodo(f.data, periodoKey));
   const prodPeriodo = periodoKey === 'todos' ? producoes : producoes.filter(p => dataEstaNoPeriodo(p.data, periodoKey));
@@ -58,7 +60,7 @@ export default function ColaboradoresRelatorio() {
             {colabAtivos.map(c => {
               const cf = freqPeriodo.filter(f => f.colaborador_id === c.id);
               const presentes = cf.filter(f => f.status === 'presente').length;
-              const faltas = cf.filter(f => f.status === 'falta').length;
+              const faltas = cf.filter(f => f.status === 'falta' && !f.falta_compensada).length;
               const atestados = cf.filter(f => f.status === 'atestado').length;
               const folgas = cf.filter(f => f.status === 'folga').length;
               const plantoesBanco = cf.filter(f => f.e_plantao && f.tipo_hora_extra === 'banco_horas').length;

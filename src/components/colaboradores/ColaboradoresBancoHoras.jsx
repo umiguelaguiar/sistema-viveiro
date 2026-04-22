@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,15 +7,17 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Clock, TrendingUp, Banknote, CheckCircle2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getPeriodos, dataEstaNoPeriodo, getPeriodoDatasLabel } from '@/lib/periodoColaboradores';
+import { dataEstaNoPeriodo, getPeriodoDatasLabel } from '@/lib/periodoColaboradores';
+import { usePeriodosComRegistros } from '@/hooks/usePeriodosComRegistros';
 
 export default function ColaboradoresBancoHoras() {
-  const periodos = getPeriodos(14);
-  // índice 0 = próximo mês futuro, índice 1 = mês corrente
-  const [periodoKey, setPeriodoKey] = useState(periodos[1]?.key || periodos[0]?.key || '');
+  const [periodoKey, setPeriodoKey] = useState('');
 
   const { data: colaboradores = [] } = useQuery({ queryKey: ['colaboradores'], queryFn: () => base44.entities.Colaborador.list() });
   const { data: frequencias = [] } = useQuery({ queryKey: ['frequencias'], queryFn: () => base44.entities.Frequencia.list('-data', 1000) });
+
+  const { periodos, periodoCorrente } = usePeriodosComRegistros(frequencias);
+  useEffect(() => { if (!periodoKey && periodoCorrente) setPeriodoKey(periodoCorrente.key); }, [periodoCorrente]);
 
   // Para pagamento: filtra pelo período. Para banco de horas: usa tudo.
   const freqPeriodoPagamento = periodoKey === 'todos'
