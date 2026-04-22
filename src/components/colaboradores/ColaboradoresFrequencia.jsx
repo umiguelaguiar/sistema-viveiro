@@ -54,13 +54,14 @@ export default function ColaboradoresFrequencia() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm());
 
-  const { periodos, periodoCorrente } = usePeriodosComRegistros(frequencias);
-  const [periodoKey, setPeriodoKey] = useState('');
-  useEffect(() => { if (!periodoKey && periodoCorrente) setPeriodoKey(periodoCorrente.key); }, [periodoCorrente]);
   const [filtroColab, setFiltroColab] = useState('todos');
 
   const { data: colaboradores = [] } = useQuery({ queryKey: ['colaboradores'], queryFn: () => base44.entities.Colaborador.list() });
   const { data: frequencias = [] } = useQuery({ queryKey: ['frequencias'], queryFn: () => base44.entities.Frequencia.list('-data', 1000) });
+
+  const { periodos, periodoCorrente } = usePeriodosComRegistros(frequencias);
+  const [periodoKey, setPeriodoKey] = useState('');
+  useEffect(() => { if (!periodoKey && periodoCorrente) setPeriodoKey(periodoCorrente.key); }, [periodoCorrente]);
 
   // Apenas ativos (não afastados)
   const colabsAtivos = colaboradores.filter(c => (c.status_colaborador || 'ativo') === 'ativo');
