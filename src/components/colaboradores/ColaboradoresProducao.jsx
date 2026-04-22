@@ -20,12 +20,12 @@ export default function ColaboradoresProducao() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm());
+  const { data: colaboradores = [] } = useQuery({ queryKey: ['colaboradores'], queryFn: () => base44.entities.Colaborador.list() });
+  const { data: producoes = [] } = useQuery({ queryKey: ['producoes-colab'], queryFn: () => base44.entities.ProducaoColaborador.list('-data', 1000) });
+
   const { periodos, periodoCorrente } = usePeriodosComRegistros(producoes);
   const [periodoKey, setPeriodoKey] = useState('');
   useEffect(() => { if (!periodoKey && periodoCorrente) setPeriodoKey(periodoCorrente.key); }, [periodoCorrente]);
-
-  const { data: colaboradores = [] } = useQuery({ queryKey: ['colaboradores'], queryFn: () => base44.entities.Colaborador.list() });
-  const { data: producoes = [] } = useQuery({ queryKey: ['producoes-colab'], queryFn: () => base44.entities.ProducaoColaborador.list('-data', 1000) });
 
   const colabMap = Object.fromEntries(colaboradores.map(c => [c.id, c.nome]));
   const colabsAtivos = colaboradores.filter(c => (c.status_colaborador || 'ativo') === 'ativo');
