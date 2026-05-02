@@ -160,24 +160,7 @@ export default function Admin() {
         </CardContent>
       </Card>
 
-      {/* Users list */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Usuários cadastrados ({users.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">Carregando...</p>
-          ) : users.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">Nenhum usuário encontrado</p>
-          ) : (
-            users.map(u => <UserRow key={u.id} u={u} currentUserId={user?.id} />)
-          )}
-        </CardContent>
-      </Card>
+
     </div>
   );
 }
