@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,8 +24,23 @@ export default function ColaboradoresBancoHoras() {
     ? frequencias
     : frequencias.filter(f => dataEstaNoPeriodo(f.data, periodoKey));
 
+  // Determina a data de início do período selecionado para filtrar desligados
+  const periodoInicio = useMemo(() => {
+    if (!periodoKey || periodoKey === 'todos') return null;
+    const [a, m] = periodoKey.split('-').map(Number);
+    return new Date(a, m - 1, 20);
+  }, [periodoKey]);
+
   const colabsComHoras = colaboradores
-    .filter(c => (c.status_colaborador || 'ativo') !== 'inativo')
+    .filter(c => {
+      if ((c.status_colaborador || 'ativo') === 'inativo') return false;
+      // Exclui desligados a partir do período em que a data de saída ocorreu
+      if (c.status_colaborador === 'desligado' && c.data_saida && periodoInicio) {
+        const dataSaida = new Date(c.data_saida + 'T12:00:00');
+        return dataSaida >= periodoInicio;
+      }
+      return true;
+    })
     .map(c => {
       const cfBanco = frequencias.filter(f => f.colaborador_id === c.id && f.status === 'presente');
       const cfPagamento = freqPeriodoPagamento.filter(f => f.colaborador_id === c.id && f.status === 'presente');

@@ -21,7 +21,24 @@ export default function ColaboradoresRelatorio() {
   const freqPeriodo = periodoKey === 'todos' ? frequencias : frequencias.filter(f => dataEstaNoPeriodo(f.data, periodoKey));
   const prodPeriodo = periodoKey === 'todos' ? producoes : producoes.filter(p => dataEstaNoPeriodo(p.data, periodoKey));
 
-  const colabAtivos = colaboradores.filter(c => (c.status_colaborador || 'ativo') !== 'inativo' && (c.status_colaborador || 'ativo') !== 'desligado');
+  // Determina a data de início do período selecionado para filtrar desligados
+  const periodoInicio = React.useMemo(() => {
+    if (!periodoKey || periodoKey === 'todos') return null;
+    const [a, m] = periodoKey.split('-').map(Number);
+    return new Date(a, m - 1, 20);
+  }, [periodoKey]);
+
+  const colabAtivos = colaboradores.filter(c => {
+    if ((c.status_colaborador || 'ativo') === 'inativo') return false;
+    // Exclui desligados a partir do período em que a data de saída ocorreu
+    if (c.status_colaborador === 'desligado' && c.data_saida && periodoInicio) {
+      const dataSaida = new Date(c.data_saida + 'T12:00:00');
+      return dataSaida >= periodoInicio;
+    }
+    // Se não tem período selecionado (todos), oculta desligados
+    if (c.status_colaborador === 'desligado' && periodoKey === 'todos') return false;
+    return true;
+  });
 
   return (
     <div className="space-y-6 pt-4">

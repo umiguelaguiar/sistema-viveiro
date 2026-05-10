@@ -25,7 +25,7 @@ export default function Transferencia() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const todayLocal = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
-  const emptyForm = () => ({ lote_id: '', clone_id: '', quantidade: '', setor_origem_id: '', setor_destino_id: '', data: todayLocal(), descartadas: '' });
+  const emptyForm = () => ({ lote_id: '', clone_id: '', quantidade: '', bandejas: '', setor_origem_id: '', setor_destino_id: '', data: todayLocal(), descartadas: '' });
   const [form, setForm] = useState(emptyForm());
 
   const stock = useMemo(() => calculateStock(producoes, movimentacoes, perdas), [producoes, movimentacoes, perdas]);
@@ -51,7 +51,7 @@ export default function Transferencia() {
       p.setor_id === row.setor_destino_id && p.data === row.data &&
       p.motivo?.includes('Descarte no enraizamento')
     ) : null;
-    setForm({ lote_id: row.lote_id, clone_id: row.clone_id, quantidade: row.quantidade, setor_origem_id: row.setor_origem_id, setor_destino_id: row.setor_destino_id, data: row.data, descartadas: perdaAssociada ? String(perdaAssociada.quantidade) : '' });
+    setForm({ lote_id: row.lote_id, clone_id: row.clone_id, quantidade: row.quantidade, bandejas: row.quantidade ? String(Math.ceil(row.quantidade / 187)) : '', setor_origem_id: row.setor_origem_id, setor_destino_id: row.setor_destino_id, data: row.data, descartadas: perdaAssociada ? String(perdaAssociada.quantidade) : '' });
     setOpen(true);
   };
 
@@ -221,8 +221,16 @@ export default function Transferencia() {
               </div>
             )}
             <div>
-              <Label>Quantidade transferida {disponivel > 0 && <span className="text-muted-foreground">(Disp: {disponivel})</span>}</Label>
-              <Input type="number" value={form.quantidade} onChange={e => setForm({ ...form, quantidade: e.target.value })} placeholder="Ex: 500" />
+              <Label>Quantidade de Bandejas {disponivel > 0 && <span className="text-muted-foreground">(Disp: {disponivel} mudas)</span>}</Label>
+              <Input
+                type="number"
+                value={form.bandejas}
+                onChange={e => setForm({ ...form, bandejas: e.target.value, quantidade: e.target.value ? String(Number(e.target.value) * 187) : '' })}
+                placeholder="Ex: 10"
+              />
+              {form.bandejas && (
+                <p className="text-xs text-muted-foreground mt-1">{(Number(form.bandejas) * 187).toLocaleString('pt-BR')} mudas</p>
+              )}
             </div>
             {isEnraizamentoTransfer && (
               <div>
