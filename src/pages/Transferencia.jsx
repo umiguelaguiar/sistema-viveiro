@@ -51,7 +51,7 @@ export default function Transferencia() {
       p.setor_id === row.setor_destino_id && p.data === row.data &&
       p.motivo?.includes('Descarte no enraizamento')
     ) : null;
-    setForm({ lote_id: row.lote_id, clone_id: row.clone_id, quantidade: row.quantidade, bandejas: row.quantidade ? String(Math.ceil(row.quantidade / 187)) : '', setor_origem_id: row.setor_origem_id, setor_destino_id: row.setor_destino_id, data: row.data, descartadas: perdaAssociada ? String(perdaAssociada.quantidade) : '' });
+    setForm({ lote_id: row.lote_id, clone_id: row.clone_id, quantidade: row.quantidade, bandejas: row.quantidade ? String(Math.ceil(row.quantidade / 187)) : '', setor_origem_id: row.setor_origem_id, setor_destino_id: row.setor_destino_id, data: row.data, descartadas: perdaAssociada ? String(Math.ceil(perdaAssociada.quantidade / 187)) : '' });
     setOpen(true);
   };
 
@@ -83,7 +83,7 @@ export default function Transferencia() {
 
     // Se for transferência casa de sombra → rustificação, atualiza indicadores e registra perdas
     if (isEnraizamentoTransfer) {
-      const descartadas = Number(form.descartadas) || 0;
+      const descartadas = (Number(form.descartadas) || 0) * 187;
       const lote = lotes.find(l => l.id === form.lote_id);
       if (lote) {
         const novas_enraizadas = (lote.estacas_enraizadas || 0) + qty + descartadas;
@@ -234,11 +234,19 @@ export default function Transferencia() {
             </div>
             {isEnraizamentoTransfer && (
               <div>
-                <Label>Mudas descartadas <span className="text-muted-foreground">(não transferidas)</span></Label>
-                <Input type="number" value={form.descartadas} onChange={e => setForm({ ...form, descartadas: e.target.value })} placeholder="Ex: 50" />
-                {form.quantidade && (
+                <Label>Bandejas descartadas <span className="text-muted-foreground">(não transferidas)</span></Label>
+                <Input
+                  type="number"
+                  value={form.descartadas}
+                  onChange={e => setForm({ ...form, descartadas: e.target.value })}
+                  placeholder="Ex: 3"
+                />
+                {form.descartadas && (
+                  <p className="text-xs text-muted-foreground mt-1">{(Number(form.descartadas) * 187).toLocaleString('pt-BR')} mudas descartadas</p>
+                )}
+                {form.bandejas && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    Total enraizadas que serão registradas: {Number(form.quantidade || 0) + Number(form.descartadas || 0)}
+                    Total enraizadas que serão registradas: {((Number(form.bandejas || 0) + Number(form.descartadas || 0)) * 187).toLocaleString('pt-BR')} mudas ({Number(form.bandejas || 0) + Number(form.descartadas || 0)} bandejas)
                   </p>
                 )}
               </div>
