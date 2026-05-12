@@ -238,7 +238,7 @@ export default function Transferencia() {
                 <Input type="number" value={form.descartadas} onChange={e => setForm({ ...form, descartadas: e.target.value })} placeholder="Ex: 50" />
                 {form.quantidade && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    Total enraizadas que serão registradas: {Number(form.quantidade || 0) + Number(form.descartadas || 0)} ({Number(form.quantidade || 0).toLocaleString('pt-BR')} transferidas + {Number(form.descartadas || 0).toLocaleString('pt-BR')} descartadas)
+                    Mudas enraizadas transferidas: <strong>{Number(form.quantidade || 0).toLocaleString('pt-BR')}</strong> · Total enraizadas registradas: {(Number(form.quantidade || 0) + Number(form.descartadas || 0)).toLocaleString('pt-BR')} (inclui {Number(form.descartadas || 0).toLocaleString('pt-BR')} descartadas)
                   </p>
                 )}
               </div>
