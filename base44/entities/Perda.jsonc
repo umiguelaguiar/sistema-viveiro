@@ -1,0 +1,107 @@
+{
+  "name": "Perda",
+  "type": "object",
+  "properties": {
+    "lote_id": {
+      "type": "string",
+      "description": "ID do lote"
+    },
+    "clone_id": {
+      "type": "string",
+      "description": "ID do clone"
+    },
+    "setor_id": {
+      "type": "string",
+      "description": "ID do setor"
+    },
+    "quantidade": {
+      "type": "number",
+      "description": "Quantidade perdida"
+    },
+    "motivo": {
+      "type": "string",
+      "description": "Motivo da perda"
+    },
+    "data": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da perda"
+    }
+  },
+  "required": [
+    "lote_id",
+    "clone_id",
+    "setor_id",
+    "quantidade",
+    "data"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "gerente"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "supervisor"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "gerente"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "supervisor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "usuario"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "gerente"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "supervisor"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
