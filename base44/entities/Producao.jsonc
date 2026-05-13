@@ -30,41 +30,5 @@
     "quantidade",
     "setor_id",
     "data"
-  ],
-  "rls": {
-    "create": {
-      "user_condition": {
-        "$nin": [
-          "visitante"
-        ]
-      }
-    },
-    "read": {
-      "user_condition": {
-        "$nin": [
-          "visitante"
-        ]
-      }
-    },
-    "update": {
-      "user_condition": {
-        "$or": [
-          {
-            "role": "admin"
-          },
-          {
-            "role": "gerente"
-          },
-          {
-            "role": "supervisor"
-          }
-        ]
-      }
-    },
-    "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
-    }
-  }
+  ]
 }
