@@ -1,0 +1,70 @@
+{
+  "name": "Producao",
+  "type": "object",
+  "properties": {
+    "lote_id": {
+      "type": "string",
+      "description": "ID do lote"
+    },
+    "clone_id": {
+      "type": "string",
+      "description": "ID do clone"
+    },
+    "quantidade": {
+      "type": "number",
+      "description": "Quantidade produzida"
+    },
+    "setor_id": {
+      "type": "string",
+      "description": "ID do setor"
+    },
+    "data": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da produ\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "lote_id",
+    "clone_id",
+    "quantidade",
+    "setor_id",
+    "data"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "$nin": [
+          "visitante"
+        ]
+      }
+    },
+    "read": {
+      "user_condition": {
+        "$nin": [
+          "visitante"
+        ]
+      }
+    },
+    "update": {
+      "user_condition": {
+        "$or": [
+          {
+            "role": "admin"
+          },
+          {
+            "role": "gerente"
+          },
+          {
+            "role": "supervisor"
+          }
+        ]
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
