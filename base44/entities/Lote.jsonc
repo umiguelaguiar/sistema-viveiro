@@ -57,19 +57,11 @@
     },
     "read": {
       "user_condition": {
-        "$or": [
-          {
-            "role": "admin"
-          },
-          {
-            "role": "gerente"
-          },
-          {
-            "role": "supervisor"
-          },
-          {
-            "role": "usuario"
-          }
+        "$in": [
+          "admin",
+          "gerente",
+          "supervisor",
+          "usuario"
         ]
       }
     },
