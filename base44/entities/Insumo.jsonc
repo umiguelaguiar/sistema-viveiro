@@ -14,5 +14,43 @@
   "required": [
     "nome",
     "unidade"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "$or": [
+          {
+            "role": "admin"
+          },
+          {
+            "role": "gerente"
+          }
+        ]
+      }
+    },
+    "read": {
+      "user_condition": {
+        "$nin": [
+          "visitante"
+        ]
+      }
+    },
+    "update": {
+      "user_condition": {
+        "$or": [
+          {
+            "role": "admin"
+          },
+          {
+            "role": "gerente"
+          }
+        ]
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
