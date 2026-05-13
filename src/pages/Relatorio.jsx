@@ -15,7 +15,7 @@ import SecaoPrevisoes from '@/components/relatorio/SecaoPrevisoes';
 import AlertasGerenciais from '@/components/relatorio/AlertasGerenciais';
 import TabelaCompleta from '@/components/relatorio/TabelaCompleta';
 import { Button } from '@/components/ui/button';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, Calendar } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, subMonths, subDays } from 'date-fns';
@@ -27,6 +27,7 @@ export default function Relatorio() {
   const [loteFiltro, setLoteFiltro] = useState('todos');
   const [setorFiltro, setSetorFiltro] = useState('todos');
   const [exportando, setExportando] = useState(false);
+  const [gerando, setGerando] = useState(false);
   const contentRef = useRef(null);
 
   const { data: producoes } = useProducoes();
@@ -451,16 +452,133 @@ export default function Relatorio() {
 
   const data = { totalProd, totalPerdas, totalExp, totalTransf, taxaPerda, eficiencia, estoqueTotal, prodMesAnt, mediaDiaria };
 
+  const gerarRelatorioSemanal = async () => {
+    setGerando(true);
+    try {
+      const hoje = new Date();
+      const primeiroDiaSemana = new Date(hoje);
+      primeiroDiaSemana.setDate(hoje.getDate() - hoje.getDay());
+      
+      const prodSemana = producoes.filter(p => {
+        try {
+          const dataProducao = parseISO(p.data);
+          return isWithinInterval(dataProducao, { start: primeiroDiaSemana, end: hoje });
+        } catch { return false; }
+      });
+
+      const totalProdSemana = prodSemana.reduce((s, p) => s + (p.quantidade || 0), 0);
+      
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pw = 210;
+      const margin = 15;
+      const contentW = pw - margin * 2;
+      let y = 0;
+
+      const cor = { verde: [39, 121, 71], cinzaEsc: [40, 40, 40], cinzaMed: [90, 90, 90], cinzaClaro: [200, 200, 200], bg: [245, 248, 245], branco: [255, 255, 255] };
+
+      // Header
+      pdf.setFillColor(...cor.verde);
+      pdf.rect(0, 0, pw, 28, 'F');
+      pdf.setTextColor(...cor.branco);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(16);
+      pdf.text('Viveiro Metalsider', margin, 12);
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Relatório de Produção Semanal`, margin, 19);
+      pdf.setFontSize(8);
+      pdf.text(`${format(primeiroDiaSemana, 'dd/MM/yyyy')} a ${format(hoje, 'dd/MM/yyyy')}`, margin, 24);
+
+      y = 36;
+
+      // Resumo
+      pdf.setFillColor(...cor.verde);
+      pdf.rect(margin, y, contentW, 7, 'F');
+      pdf.setTextColor(...cor.branco);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(9);
+      pdf.text('RESUMO DA SEMANA', margin + 3, y + 5);
+      y += 10;
+
+      pdf.setFillColor(245, 248, 245);
+      pdf.rect(margin, y, contentW, 6, 'F');
+      pdf.setDrawColor(...cor.cinzaClaro);
+      pdf.rect(margin, y, contentW, 6, 'S');
+      pdf.setTextColor(...cor.cinzaEsc);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8.5);
+      pdf.text('Total Produzido na Semana', margin + 3, y + 4.2);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(totalProdSemana.toLocaleString('pt-BR') + ' mudas', pw - margin - 3, y + 4.2, { align: 'right' });
+      y += 8;
+
+      // Tabela de produções diárias
+      if (prodSemana.length > 0) {
+        pdf.setFillColor(...cor.verde);
+        pdf.rect(margin, y, contentW, 7, 'F');
+        pdf.setTextColor(...cor.branco);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(9);
+        pdf.text('PRODUÇÕES REGISTRADAS', margin + 3, y + 5);
+        y += 10;
+
+        const colW = contentW / 4;
+        pdf.setFillColor(...cor.cinzaEsc);
+        pdf.rect(margin, y, contentW, 7, 'F');
+        pdf.setTextColor(...cor.branco);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8);
+        pdf.text('Data', margin + 2, y + 5);
+        pdf.text('Clone', margin + colW + 2, y + 5);
+        pdf.text('Setor', margin + colW * 2 + 2, y + 5);
+        pdf.text('Quantidade', margin + colW * 3 + 2, y + 5);
+        y += 7;
+
+        prodSemana.slice(0, 20).forEach((p, idx) => {
+          pdf.setFillColor(idx % 2 === 0 ? 250 : 245, idx % 2 === 0 ? 250 : 248, idx % 2 === 0 ? 250 : 245);
+          pdf.rect(margin, y, contentW, 6, 'F');
+          pdf.setDrawColor(...cor.cinzaClaro);
+          pdf.rect(margin, y, contentW, 6, 'S');
+          pdf.setTextColor(...cor.cinzaEsc);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(7.5);
+          pdf.text(p.data ? format(parseISO(p.data), 'dd/MM') : '-', margin + 2, y + 4.2);
+          pdf.text(cloneMap[p.clone_id] || '-', margin + colW + 2, y + 4.2);
+          pdf.text(setorMap[p.setor_id] || '-', margin + colW * 2 + 2, y + 4.2);
+          pdf.text((p.quantidade || 0).toLocaleString('pt-BR'), margin + colW * 3 + 2, y + 4.2);
+          y += 6;
+        });
+      }
+
+      // Rodapé
+      pdf.setFillColor(...cor.bg);
+      pdf.rect(0, 288, pw, 10, 'F');
+      pdf.setTextColor(...cor.cinzaMed);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(7);
+      pdf.text('Viveiro Metalsider — Relatório Semanal', margin, 294);
+      pdf.text(format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }), pw - margin, 294, { align: 'right' });
+
+      pdf.save(`viveiro_relatorio_semanal_${format(hoje, 'yyyy-MM-dd')}.pdf`);
+    } finally { setGerando(false); }
+  };
+
   return (
     <div>
       <PageHeader
         title="Relatório Gerencial"
         description="Análise completa das operações do viveiro"
         action={
-          <Button variant="outline" onClick={exportarPDF} disabled={exportando} className="gap-2">
-            {exportando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            {exportando ? 'Exportando...' : 'Exportar PDF'}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={gerarRelatorioSemanal} disabled={gerando} className="gap-2">
+              {gerando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />}
+              {gerando ? 'Gerando...' : 'Relatório Semanal'}
+            </Button>
+            <Button variant="outline" onClick={exportarPDF} disabled={exportando} className="gap-2">
+              {exportando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              {exportando ? 'Exportando...' : 'Exportar PDF'}
+            </Button>
+          </div>
         }
       />
 
