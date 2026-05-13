@@ -1,0 +1,119 @@
+{
+  "name": "ProducaoColaborador",
+  "type": "object",
+  "properties": {
+    "colaborador_id": {
+      "type": "string",
+      "description": "ID do colaborador"
+    },
+    "data": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da produ\u00e7\u00e3o"
+    },
+    "atividade": {
+      "type": "string",
+      "enum": [
+        "tubete",
+        "selecao",
+        "irrigacao",
+        "expedicao",
+        "coleta",
+        "plantio"
+      ],
+      "description": "Atividade realizada"
+    },
+    "quantidade": {
+      "type": "number",
+      "description": "Quantidade produzida"
+    },
+    "observacao": {
+      "type": "string",
+      "description": "Observa\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "colaborador_id",
+    "data",
+    "atividade",
+    "quantidade"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "gerente"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "supervisor"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "gerente"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "supervisor"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "gerente"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "supervisor"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "gerente"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "supervisor"
+          }
+        }
+      ]
+    }
+  }
+}
