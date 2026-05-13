@@ -1,0 +1,56 @@
+{
+  "name": "Insumo",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do insumo"
+    },
+    "unidade": {
+      "type": "string",
+      "description": "Unidade de medida"
+    }
+  },
+  "required": [
+    "nome",
+    "unidade"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "$or": [
+          {
+            "role": "admin"
+          },
+          {
+            "role": "gerente"
+          }
+        ]
+      }
+    },
+    "read": {
+      "user_condition": {
+        "$nin": [
+          "visitante"
+        ]
+      }
+    },
+    "update": {
+      "user_condition": {
+        "$or": [
+          {
+            "role": "admin"
+          },
+          {
+            "role": "gerente"
+          }
+        ]
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
