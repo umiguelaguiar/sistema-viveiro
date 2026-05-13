@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useClones, useEspecies } from '@/hooks/useNurseryData';
@@ -13,7 +13,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Plus, Pencil } from 'lucide-react';
 
 export default function Clones() {
-  const { data: clones, isLoading } = useClones();
+  const { data: clonesRaw, isLoading } = useClones();
+  const clones = useMemo(() => {
+    const seen = new Set();
+    return (clonesRaw || []).filter(c => {
+      if (seen.has(c.id)) return false;
+      seen.add(c.id);
+      return true;
+    });
+  }, [clonesRaw]);
   const { data: especies } = useEspecies();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);

@@ -14,7 +14,8 @@ export function useClones() {
   return useQuery({
     queryKey: ['clones'],
     queryFn: () => base44.entities.Clone.list('-created_date'),
-    initialData: [],
+    placeholderData: [],
+    staleTime: 0,
   });
 }
 
