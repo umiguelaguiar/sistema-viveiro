@@ -47,7 +47,8 @@ export function useMovimentacoes() {
   return useQuery({
     queryKey: ['movimentacoes'],
     queryFn: () => base44.entities.Movimentacao.list('-data', 5000),
-    placeholderData: [],
+    initialData: [],
+    staleTime: 0,
   });
 }
 
