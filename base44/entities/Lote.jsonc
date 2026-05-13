@@ -38,5 +38,49 @@
   },
   "required": [
     "codigo"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "$or": [
+          {
+            "role": "admin"
+          },
+          {
+            "role": "gerente"
+          },
+          {
+            "role": "supervisor"
+          }
+        ]
+      }
+    },
+    "read": {
+      "user_condition": {
+        "$in": [
+          "admin",
+          "gerente",
+          "supervisor",
+          "usuario"
+        ]
+      }
+    },
+    "update": {
+      "user_condition": {
+        "$or": [
+          {
+            "role": "admin"
+          },
+          {
+            "role": "gerente"
+          }
+        ]
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
