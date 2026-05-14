@@ -30,33 +30,7 @@
   ],
   "rls": {
     "create": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "gerente"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "supervisor"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "usuario"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "visitante"
-          }
-        }
-      ]
+      "created_by": "{{user.email}}"
     },
     "read": {
       "$or": [
