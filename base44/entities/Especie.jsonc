@@ -58,25 +58,7 @@
         }
       ]
     },
-    "update": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "gerente"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "supervisor"
-          }
-        }
-      ]
-    },
+    "update": null,
     "delete": {
       "$or": [
         {
