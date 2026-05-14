@@ -2,8 +2,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 const ENTIDADES = [
   'Producao', 'Movimentacao', 'Perda', 'Clone', 'Lote',
-  'Setor', 'Especie', 'Insumo', 'MovimentacaoInsumo'
+  'Setor', 'Especie', 'Insumo', 'MovimentacaoInsumo',
+  'Colaborador', 'Frequencia', 'ProducaoColaborador',
+  'SolicitacaoAcesso'
 ];
+
+// Entidades excluídas da restauração (metadados do sistema, não dados operacionais)
+// BackupSistema é excluído intencionalmente para preservar o histórico de backups
 
 async function gerarHashSHA256(texto) {
   const encoder = new TextEncoder();
