@@ -42,6 +42,9 @@
     "create": {
       "$or": [
         {
+          "created_by": "{{user.email}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -55,16 +58,14 @@
           "user_condition": {
             "role": "supervisor"
           }
-        },
-        {
-          "user_condition": {
-            "role": "usuario"
-          }
         }
       ]
     },
     "read": {
       "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
         {
           "user_condition": {
             "role": "admin"
@@ -90,6 +91,9 @@
     "update": {
       "$or": [
         {
+          "created_by": "{{user.email}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -97,11 +101,6 @@
         {
           "user_condition": {
             "role": "gerente"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "supervisor"
           }
         }
       ]
