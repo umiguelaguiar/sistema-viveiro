@@ -68,15 +68,34 @@ export default function Backup() {
     }
   });
 
+  const [arquivoRestauracao, setArquivoRestauracao] = useState(null);
+  const [dadosRestauracao, setDadosRestauracao] = useState(null);
+
+  const handleArquivoSelecionado = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setArquivoRestauracao(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const dados = JSON.parse(ev.target.result);
+        setDadosRestauracao(dados);
+      } catch {
+        toast.error('Arquivo inválido - não é um JSON válido');
+        setArquivoRestauracao(null);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   // Restaurar backup
   const mutationRestaurar = useMutation({
-    mutationFn: async (backup) => {
+    mutationFn: async () => {
       setRestaurando(true);
-      // Buscar dados do backup original se necessário
       const resposta = await base44.functions.invoke('restaurarBackup', {
-        jsonDados: backup.dados_json || {},
-        hashValidacao: backup.hash_integridade,
-        backupIdOrigemRestauracao: backup.id
+        jsonDados: dadosRestauracao,
+        hashValidacao: backupSelecionado?.hash_integridade || null,
+        backupIdOrigemRestauracao: backupSelecionado?.id || null
       });
       return resposta.data;
     },
@@ -84,6 +103,9 @@ export default function Backup() {
       if (data.sucesso) {
         toast.success('Backup restaurado com sucesso! ' + data.totalRestaurados + ' registros');
         setConfirmDialogOpen(false);
+        setArquivoRestauracao(null);
+        setDadosRestauracao(null);
+        setBackupSelecionado(null);
         queryClient.invalidateQueries({ queryKey: ['backups_sistema'] });
       } else {
         toast.error('Erro ao restaurar: ' + data.erro);
@@ -98,6 +120,8 @@ export default function Backup() {
 
   const iniciarRestauracao = (backup) => {
     setBackupSelecionado(backup);
+    setArquivoRestauracao(null);
+    setDadosRestauracao(null);
     setConfirmDialogOpen(true);
   };
 
@@ -107,10 +131,16 @@ export default function Backup() {
         title="Backup e Restauração"
         description="Gerenciamento avançado de backups com segurança e redundância"
         action={
-          <Button onClick={() => mutationGerar.mutate()} disabled={gerando} className="gap-2">
-            {gerando ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            {gerando ? 'Gerando...' : 'Gerar Backup Completo'}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => { setBackupSelecionado(null); setArquivoRestauracao(null); setDadosRestauracao(null); setConfirmDialogOpen(true); }} className="gap-2">
+              <RefreshCw className="w-4 h-4" />
+              Restaurar Arquivo
+            </Button>
+            <Button onClick={() => mutationGerar.mutate()} disabled={gerando} className="gap-2">
+              {gerando ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              {gerando ? 'Gerando...' : 'Gerar Backup Completo'}
+            </Button>
+          </div>
         }
       />
 
@@ -288,25 +318,39 @@ export default function Backup() {
             </DialogDescription>
           </DialogHeader>
 
-          {backupSelecionado && (
-            <div className="space-y-4">
+          <div className="space-y-4">
               <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                 <p className="text-sm font-semibold text-red-900 dark:text-red-300 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4" />
-                  Restaurando backup de {format(new Date(backupSelecionado.data_hora), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                  {backupSelecionado ? `Referência: backup de ${format(new Date(backupSelecionado.data_hora), 'dd/MM/yyyy HH:mm', { locale: ptBR })}` : 'Restauração por arquivo'}
                 </p>
                 <p className="text-xs text-red-700 dark:text-red-400 mt-2">
-                  • Será criado um backup de segurança automático dos dados atuais
+                  • Um backup de segurança automático dos dados atuais será criado antes de restaurar
                 </p>
                 <p className="text-xs text-red-700 dark:text-red-400">
-                  • {backupSelecionado.total_registros} registros serão restaurados
+                  • Todos os dados atuais serão substituídos pelos dados do arquivo de backup
                 </p>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium mb-2">Selecione o arquivo de backup (.json):</p>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleArquivoSelecionado}
+                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                />
+                {arquivoRestauracao && dadosRestauracao && (
+                  <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" /> Arquivo válido: {arquivoRestauracao.name}
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => setConfirmDialogOpen(false)}
+                  onClick={() => { setConfirmDialogOpen(false); setArquivoRestauracao(null); setDadosRestauracao(null); }}
                   disabled={restaurando}
                   className="flex-1"
                 >
@@ -314,8 +358,8 @@ export default function Backup() {
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() => mutationRestaurar.mutate(backupSelecionado)}
-                  disabled={restaurando}
+                  onClick={() => mutationRestaurar.mutate()}
+                  disabled={restaurando || !dadosRestauracao}
                   className="flex-1 gap-2"
                 >
                   {restaurando ? (
@@ -332,7 +376,6 @@ export default function Backup() {
                 </Button>
               </div>
             </div>
-          )}
         </DialogContent>
       </Dialog>
 
