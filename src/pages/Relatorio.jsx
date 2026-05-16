@@ -487,7 +487,7 @@ export default function Relatorio() {
       pdf.setFont('helvetica', 'normal');
       pdf.text(`Relatório de Produção Semanal`, margin, 19);
       pdf.setFontSize(8);
-      pdf.text(`${format(primeiroDiaSemana, 'dd/MM/yyyy')} a ${format(hoje, 'dd/MM/yyyy')}`, margin, 24);
+      pdf.text(`${format(hoje, 'MMMM yyyy', { locale: ptBR })}`, margin, 24);
 
       y = 36;
 
