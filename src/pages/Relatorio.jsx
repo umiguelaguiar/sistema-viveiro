@@ -512,29 +512,37 @@ export default function Relatorio() {
       pdf.text(totalProdSemana.toLocaleString('pt-BR') + ' mudas', pw - margin - 3, y + 4.2, { align: 'right' });
       y += 8;
 
-      // Tabela de produções diárias
+      // Tabela de produções agrupadas por clone
       if (prodSemana.length > 0) {
         pdf.setFillColor(...cor.verde);
         pdf.rect(margin, y, contentW, 7, 'F');
         pdf.setTextColor(...cor.branco);
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(9);
-        pdf.text('PRODUÇÕES REGISTRADAS', margin + 3, y + 5);
+        pdf.text('PRODUÇÃO POR CLONE', margin + 3, y + 5);
         y += 10;
 
-        const colW = contentW / 4;
+        // Agrupar por clone
+        const porClone = {};
+        prodSemana.forEach(p => {
+          const nome = cloneMap[p.clone_id] || p.clone_id || '-';
+          porClone[nome] = (porClone[nome] || 0) + (p.quantidade || 0);
+        });
+        const linhasClone = Object.entries(porClone).sort((a, b) => b[1] - a[1]);
+
+        const col1 = contentW * 0.6;
+        const col2 = contentW * 0.4;
+
         pdf.setFillColor(...cor.cinzaEsc);
         pdf.rect(margin, y, contentW, 7, 'F');
         pdf.setTextColor(...cor.branco);
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(8);
-        pdf.text('Data', margin + 2, y + 5);
-        pdf.text('Clone', margin + colW + 2, y + 5);
-        pdf.text('Setor', margin + colW * 2 + 2, y + 5);
-        pdf.text('Quantidade', margin + colW * 3 + 2, y + 5);
+        pdf.text('Clone', margin + 2, y + 5);
+        pdf.text('Quantidade', margin + col1 + 2, y + 5);
         y += 7;
 
-        prodSemana.slice(0, 20).forEach((p, idx) => {
+        linhasClone.forEach(([nome, qty], idx) => {
           pdf.setFillColor(idx % 2 === 0 ? 250 : 245, idx % 2 === 0 ? 250 : 248, idx % 2 === 0 ? 250 : 245);
           pdf.rect(margin, y, contentW, 6, 'F');
           pdf.setDrawColor(...cor.cinzaClaro);
@@ -542,10 +550,8 @@ export default function Relatorio() {
           pdf.setTextColor(...cor.cinzaEsc);
           pdf.setFont('helvetica', 'normal');
           pdf.setFontSize(7.5);
-          pdf.text(p.data ? format(parseISO(p.data), 'dd/MM') : '-', margin + 2, y + 4.2);
-          pdf.text(cloneMap[p.clone_id] || '-', margin + colW + 2, y + 4.2);
-          pdf.text(setorMap[p.setor_id] || '-', margin + colW * 2 + 2, y + 4.2);
-          pdf.text((p.quantidade || 0).toLocaleString('pt-BR'), margin + colW * 3 + 2, y + 4.2);
+          pdf.text(nome, margin + 2, y + 4.2);
+          pdf.text(qty.toLocaleString('pt-BR'), margin + col1 + 2, y + 4.2);
           y += 6;
         });
       }
