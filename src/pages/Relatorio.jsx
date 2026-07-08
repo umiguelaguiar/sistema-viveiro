@@ -556,6 +556,151 @@ export default function Relatorio() {
         });
       }
 
+      // Helpers de paginação
+      const checkY = (needed = 10) => {
+        if (y + needed > 280) { pdf.addPage(); y = 12; }
+      };
+      const secao = (titulo) => {
+        checkY(14);
+        pdf.setFillColor(...cor.verde);
+        pdf.rect(margin, y, contentW, 7, 'F');
+        pdf.setTextColor(...cor.branco);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(9);
+        pdf.text(titulo.toUpperCase(), margin + 3, y + 5);
+        y += 10;
+      };
+
+      // --- Estoque atual por setor (com separação por clone) ---
+      if (estoquePorSetor.length > 0) {
+        secao('Estoque Atual por Setor');
+        const setoresComEstoque = estoquePorSetor
+          .filter(s => s.total > 0)
+          .sort((a, b) => b.total - a.total);
+
+        setoresComEstoque.forEach(setor => {
+          // Localiza o ID do setor pelo nome
+          const setorId = Object.keys(stock).find(sid => setores.find(s => s.id === sid)?.nome === setor.nome);
+          const setorStock = setorId ? (stock[setorId] || {}) : {};
+
+          // Linha do setor (total)
+          checkY(8);
+          pdf.setFillColor(...cor.cinzaEsc);
+          pdf.rect(margin, y, contentW, 6, 'F');
+          pdf.setTextColor(...cor.branco);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(8);
+          pdf.text(setor.nome, margin + 2, y + 4.2);
+          pdf.text(setor.total.toLocaleString('pt-BR') + ' mudas', pw - margin - 3, y + 4.2, { align: 'right' });
+          y += 6;
+
+          // Breakdown por clone dentro do setor
+          const porClone = Object.entries(setorStock).map(([cloneId, byLote]) => ({
+            nome: cloneMap[cloneId] || cloneId,
+            qtd: Object.values(byLote).reduce((a, q) => a + Math.max(0, q), 0)
+          })).filter(c => c.qtd > 0).sort((a, b) => b.qtd - a.qtd);
+
+          porClone.forEach((c, idx) => {
+            checkY(5);
+            pdf.setFillColor(idx % 2 === 0 ? 250 : 245, idx % 2 === 0 ? 250 : 248, idx % 2 === 0 ? 250 : 245);
+            pdf.rect(margin, y, contentW, 5, 'F');
+            pdf.setDrawColor(...cor.cinzaClaro);
+            pdf.rect(margin, y, contentW, 5, 'S');
+            pdf.setTextColor(...cor.cinzaEsc);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(7.5);
+            pdf.text('  ' + c.nome, margin + 2, y + 3.7);
+            pdf.text(c.qtd.toLocaleString('pt-BR'), pw - margin - 3, y + 3.7, { align: 'right' });
+            y += 5;
+          });
+          y += 2;
+        });
+      }
+
+      // --- Previsão de Produção - Próximos 6 meses (por clone) ---
+      secao('Previsão de Produção - Próximos 6 Meses');
+
+      // Média mensal por clone baseada nos últimos 90 dias
+      const ultimos90 = producoes.filter(p => {
+        try { return isWithinInterval(parseISO(p.data), { start: subDays(hoje, 90), end: hoje }); } catch { return false; }
+      });
+      const porCloneAvg = {};
+      ultimos90.forEach(p => {
+        const nome = cloneMap[p.clone_id] || p.clone_id;
+        if (!porCloneAvg[nome]) porCloneAvg[nome] = 0;
+        porCloneAvg[nome] += (p.quantidade || 0);
+      });
+      // Previsão mensal = (total 90 dias / 90) * 22 dias úteis
+      const previsaoPorClone = Object.entries(porCloneAvg)
+        .map(([nome, total]) => ({ nome, mensal: Math.round((total / 90) * 22) }))
+        .filter(c => c.mensal > 0)
+        .sort((a, b) => b.mensal - a.mensal);
+
+      const totalMensalPrevisto = previsaoPorClone.reduce((s, c) => s + c.mensal, 0);
+
+      // Próximos 6 meses
+      const mesesFuturos = Array.from({ length: 6 }, (_, i) => {
+        const d = new Date(hoje.getFullYear(), hoje.getMonth() + i + 1, 1);
+        return format(d, 'MMM/yy', { locale: ptBR });
+      });
+
+      const colCloneW = contentW * 0.28;
+      const colMesW = (contentW - colCloneW) / 6;
+
+      // Cabeçalho
+      checkY(10);
+      pdf.setFillColor(...cor.cinzaEsc);
+      pdf.rect(margin, y, contentW, 7, 'F');
+      pdf.setTextColor(...cor.branco);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(7);
+      pdf.text('Clone', margin + 2, y + 5);
+      mesesFuturos.forEach((mLabel, i) => {
+        pdf.text(mLabel, margin + colCloneW + colMesW * i + 1, y + 5);
+      });
+      y += 7;
+
+      previsaoPorClone.slice(0, 15).forEach((c, idx) => {
+        checkY(6);
+        pdf.setFillColor(idx % 2 === 0 ? 250 : 245, idx % 2 === 0 ? 250 : 248, idx % 2 === 0 ? 250 : 245);
+        pdf.rect(margin, y, contentW, 6, 'F');
+        pdf.setDrawColor(...cor.cinzaClaro);
+        pdf.rect(margin, y, contentW, 6, 'S');
+        pdf.setTextColor(...cor.cinzaEsc);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7);
+        pdf.text(c.nome, margin + 2, y + 4.2);
+        mesesFuturos.forEach((_, i) => {
+          pdf.text(c.mensal.toLocaleString('pt-BR'), margin + colCloneW + colMesW * i + 1, y + 4.2);
+        });
+        y += 6;
+      });
+
+      // Linha de total mensal previsto
+      checkY(8);
+      pdf.setFillColor(...cor.verde);
+      pdf.rect(margin, y, contentW, 7, 'F');
+      pdf.setTextColor(...cor.branco);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8);
+      pdf.text('TOTAL MENSAL PREVISTO', margin + 2, y + 5);
+      pdf.text(totalMensalPrevisto.toLocaleString('pt-BR') + ' mudas/mês', pw - margin - 3, y + 5, { align: 'right' });
+      y += 10;
+
+      // Resumo da previsão
+      checkY(8);
+      pdf.setFillColor(245, 248, 245);
+      pdf.rect(margin, y, contentW, 6, 'F');
+      pdf.setDrawColor(...cor.cinzaClaro);
+      pdf.rect(margin, y, contentW, 6, 'S');
+      pdf.setTextColor(...cor.cinzaEsc);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8.5);
+      pdf.text('Previsão baseada nos últimos 90 dias de produção', margin + 3, y + 4.2);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(totalMensalPrevisto.toLocaleString('pt-BR') + ' mudas/mês', pw - margin - 3, y + 4.2, { align: 'right' });
+      y += 8;
+
       // Rodapé
       pdf.setFillColor(...cor.bg);
       pdf.rect(0, 288, pw, 10, 'F');

@@ -1,0 +1,20 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "supervisor",
+        "gerente",
+        "usuario",
+        "visitante"
+      ],
+      "description": "Papel do usu\u00e1rio no sistema"
+    }
+  },
+  "required": [
+    "role"
+  ]
+}

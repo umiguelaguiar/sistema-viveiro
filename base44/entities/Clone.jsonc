@@ -1,47 +1,26 @@
 {
-  "name": "Movimentacao",
+  "name": "Clone",
   "type": "object",
   "properties": {
-    "tipo": {
+    "codigo_clone": {
       "type": "string",
-      "enum": [
-        "transferencia",
-        "expedicao"
-      ],
-      "description": "Tipo de movimenta\u00e7\u00e3o"
+      "description": "C\u00f3digo do clone"
     },
-    "lote_id": {
+    "especie_id": {
       "type": "string",
-      "description": "ID do lote"
+      "description": "ID da esp\u00e9cie"
     },
-    "clone_id": {
+    "fornecedor": {
       "type": "string",
-      "description": "ID do clone"
+      "description": "Fornecedor do clone"
     },
-    "quantidade": {
-      "type": "number",
-      "description": "Quantidade movimentada"
-    },
-    "setor_origem_id": {
+    "observacoes": {
       "type": "string",
-      "description": "ID do setor de origem"
-    },
-    "setor_destino_id": {
-      "type": "string",
-      "description": "ID do setor de destino"
-    },
-    "data": {
-      "type": "string",
-      "format": "date",
-      "description": "Data da movimenta\u00e7\u00e3o"
+      "description": "Observa\u00e7\u00f5es sobre o clone"
     }
   },
   "required": [
-    "tipo",
-    "lote_id",
-    "clone_id",
-    "quantidade",
-    "data"
+    "codigo_clone"
   ],
   "rls": {
     "create": {
@@ -59,11 +38,6 @@
         {
           "user_condition": {
             "role": "supervisor"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "usuario"
           }
         }
       ]
@@ -103,13 +77,32 @@
           "user_condition": {
             "role": "gerente"
           }
+        },
+        {
+          "user_condition": {
+            "role": "supervisor"
+          }
         }
       ]
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "gerente"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "supervisor"
+          }
+        }
+      ]
     }
   }
 }
