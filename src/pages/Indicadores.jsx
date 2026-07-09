@@ -6,8 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, Loader2 } from 'lucide-react';
 import jsPDF from 'jspdf';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
+const CHART_COLORS = ['#15803d', '#d97706', '#2563eb', '#9333ea', '#dc2626', '#0891b2', '#c026d3', '#65a30d', '#ea580c', '#4f46e5'];
 
 function calcTaxa(numerador, denominador) {
   if (!denominador || denominador === 0) return 0;
@@ -112,6 +115,29 @@ export default function Indicadores() {
 
   const mediaEnraiz = avg(transferFiltradas.map(t => t.taxa_enraizamento));
   const [exportando, setExportando] = useState(false);
+
+  // Dados para o gráfico: evolução do enraizamento por clone ao longo do tempo
+  const dadosGrafico = useMemo(() => {
+    // Agrupar por data e clone
+    const porDataClone = {};
+    transferFiltradas.forEach(t => {
+      if (!t.data) return;
+      if (!porDataClone[t.data]) porDataClone[t.data] = {};
+      const cloneNome = t.clone?.codigo_clone || t.clone_id;
+      if (!porDataClone[t.data][cloneNome]) porDataClone[t.data][cloneNome] = [];
+      porDataClone[t.data][cloneNome].push(t.taxa_enraizamento);
+    });
+
+    // Ordenar datas e montar array
+    const datasOrdenadas = Object.keys(porDataClone).sort();
+    return datasOrdenadas.map(data => {
+      const ponto = { data: format(parseISO(data), 'dd/MM/yy', { locale: ptBR }) };
+      Object.entries(porDataClone[data]).forEach(([clone, taxas]) => {
+        ponto[clone] = avg(taxas);
+      });
+      return ponto;
+    });
+  }, [transferFiltradas]);
 
   // Agrupar por clone para o PDF
   const dadosPorClone = useMemo(() => {
@@ -359,6 +385,37 @@ export default function Indicadores() {
           <p className="text-4xl font-bold text-red-600">{transferFiltradas.reduce((s, t) => s + t.descartadas, 0).toLocaleString('pt-BR')}</p>
         </Card>
       </div>
+
+      {/* Gráfico de evolução por clone */}
+      {dadosGrafico.length > 0 && (
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-1">Evolução do Enraizamento por Clone</h3>
+          <p className="text-sm text-muted-foreground mb-4">Taxa de enraizamento (%) ao longo do tempo</p>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={dadosGrafico} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="data" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={60} />
+              <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
+              <Tooltip
+                contentStyle={{ borderRadius: '8px', fontSize: '12px' }}
+                formatter={(v) => [v + '%', '']}
+              />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
+              {dadosPorClone.map((c, i) => (
+                <Line
+                  key={c.nome}
+                  type="monotone"
+                  dataKey={c.nome}
+                  stroke={CHART_COLORS[i % CHART_COLORS.length]}
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  connectNulls
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+      )}
 
       {/* Tabela */}
       {transferFiltradas.length === 0 ? (
