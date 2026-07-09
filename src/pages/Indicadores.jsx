@@ -2,7 +2,12 @@ import React, { useMemo, useState } from 'react';
 import { useMovimentacoes, useSetores, useClones, usePerdas, useLotes } from '@/hooks/useNurseryData';
 import PageHeader from '@/components/shared/PageHeader';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Download, Loader2 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 function calcTaxa(numerador, denominador) {
   if (!denominador || denominador === 0) return 0;
@@ -106,6 +111,179 @@ export default function Indicadores() {
   }, [transferEnraizamento, loteMap]);
 
   const mediaEnraiz = avg(transferFiltradas.map(t => t.taxa_enraizamento));
+  const [exportando, setExportando] = useState(false);
+
+  // Agrupar por clone para o PDF
+  const dadosPorClone = useMemo(() => {
+    const map = {};
+    transferFiltradas.forEach(t => {
+      const id = t.clone_id || 'sem_clone';
+      const nome = t.clone?.codigo_clone || id;
+      if (!map[id]) map[id] = { nome, transferencias: [], transferidas: 0, descartadas: 0, enraizadas: 0, taxas: [] };
+      map[id].transferencias.push(t);
+      map[id].transferidas += t.transferidas;
+      map[id].descartadas += t.descartadas;
+      map[id].enraizadas += t.enraizadas;
+      map[id].taxas.push(t.taxa_enraizamento);
+    });
+    return Object.values(map).map(c => ({
+      ...c,
+      taxa_media: avg(c.taxas),
+      status: classificar(avg(c.taxas), [60, 80]),
+    })).sort((a, b) => b.transferidas - a.transferidas);
+  }, [transferFiltradas]);
+
+  const exportarPDF = async () => {
+    setExportando(true);
+    try {
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pw = 210;
+      const margin = 15;
+      const contentW = pw - margin * 2;
+      let y = 0;
+
+      const cor = { verde: [39, 121, 71], cinzaEsc: [40, 40, 40], cinzaMed: [90, 90, 90], cinzaClaro: [200, 200, 200], bg: [245, 248, 245], branco: [255, 255, 255] };
+
+      const checkY = (needed = 10) => { if (y + needed > 280) { pdf.addPage(); y = 12; } };
+
+      const secao = (titulo) => {
+        checkY(14);
+        pdf.setFillColor(...cor.verde);
+        pdf.rect(margin, y, contentW, 7, 'F');
+        pdf.setTextColor(...cor.branco);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(9);
+        pdf.text(titulo.toUpperCase(), margin + 3, y + 5);
+        y += 10;
+      };
+
+      const linha = (label, valor, destaque = false) => {
+        checkY(7);
+        pdf.setFillColor(destaque ? 242 : 255, destaque ? 248 : 255, destaque ? 242 : 255);
+        pdf.rect(margin, y, contentW, 6, 'F');
+        pdf.setDrawColor(...cor.cinzaClaro);
+        pdf.rect(margin, y, contentW, 6, 'S');
+        pdf.setTextColor(...cor.cinzaEsc);
+        pdf.setFont('helvetica', destaque ? 'bold' : 'normal');
+        pdf.setFontSize(8.5);
+        pdf.text(label, margin + 3, y + 4.2);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(String(valor), pw - margin - 3, y + 4.2, { align: 'right' });
+        y += 6;
+      };
+
+      const tabela = (headers, rows) => {
+        checkY(10);
+        const colW = contentW / headers.length;
+        pdf.setFillColor(...cor.cinzaEsc);
+        pdf.rect(margin, y, contentW, 7, 'F');
+        pdf.setTextColor(...cor.branco);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8);
+        headers.forEach((h, i) => pdf.text(h, margin + colW * i + 2, y + 5));
+        y += 7;
+        rows.forEach((row, ri) => {
+          checkY(6);
+          pdf.setFillColor(ri % 2 === 0 ? 250 : 245, ri % 2 === 0 ? 250 : 248, ri % 2 === 0 ? 250 : 245);
+          pdf.rect(margin, y, contentW, 6, 'F');
+          pdf.setDrawColor(...cor.cinzaClaro);
+          pdf.rect(margin, y, contentW, 6, 'S');
+          pdf.setTextColor(...cor.cinzaEsc);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(7.5);
+          row.forEach((cell, ci) => pdf.text(String(cell ?? '-'), margin + colW * ci + 2, y + 4.2));
+          y += 6;
+        });
+        y += 3;
+      };
+
+      // Header
+      pdf.setFillColor(...cor.verde);
+      pdf.rect(0, 0, pw, 28, 'F');
+      pdf.setTextColor(...cor.branco);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(16);
+      pdf.text('Viveiro Metalsider', margin, 12);
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Indicadores de Produção por Clone', margin, 19);
+      pdf.setFontSize(8);
+      const periodo = [
+        anoFiltro !== 'todos' ? anoFiltro : null,
+        mesFiltro !== 'todos' ? format(new Date(mesFiltro + '-15'), 'MMMM/yyyy', { locale: ptBR }) : null,
+      ].filter(Boolean).join(' — ') || 'Todos os períodos';
+      pdf.text(`Período: ${periodo}`, margin, 24);
+      pdf.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, pw - margin, 24, { align: 'right' });
+      y = 36;
+
+      // Resumo geral
+      secao('Resumo Geral');
+      linha('Total de Clones', dadosPorClone.length + ' clones', true);
+      linha('Total Transferências', transferFiltradas.length + ' transferências');
+      linha('Total Transferidas', transferFiltradas.reduce((s, t) => s + t.transferidas, 0).toLocaleString('pt-BR') + ' mudas');
+      linha('Total Descartadas', transferFiltradas.reduce((s, t) => s + t.descartadas, 0).toLocaleString('pt-BR') + ' mudas');
+      linha('Total Enraizadas', transferFiltradas.reduce((s, t) => s + t.enraizadas, 0).toLocaleString('pt-BR') + ' mudas');
+      linha('Média Geral de Enraizamento', mediaEnraiz + '%', true);
+      y += 5;
+
+      // Tabela consolidada por clone
+      if (dadosPorClone.length > 0) {
+        secao('Consolidado por Clone');
+        tabela(
+          ['Clone', 'Transferências', 'Transferidas', 'Descartadas', 'Enraizadas', '% Enraiz.', 'Status'],
+          dadosPorClone.map(c => [
+            c.nome,
+            c.transferencias.length,
+            c.transferidas.toLocaleString('pt-BR'),
+            c.descartadas.toLocaleString('pt-BR'),
+            c.enraizadas.toLocaleString('pt-BR'),
+            c.taxa_media + '%',
+            c.status,
+          ])
+        );
+      }
+
+      // Detalhamento por clone
+      dadosPorClone.forEach(clone => {
+        secao(`Clone: ${clone.nome}`);
+        linha('Transferências', clone.transferencias.length);
+        linha('Total Transferidas', clone.transferidas.toLocaleString('pt-BR'));
+        linha('Total Descartadas', clone.descartadas.toLocaleString('pt-BR'));
+        linha('Total Enraizadas', clone.enraizadas.toLocaleString('pt-BR'));
+        linha('Taxa Média de Enraizamento', clone.taxa_media + '%', true);
+        linha('Status', clone.status, true);
+        y += 3;
+
+        tabela(
+          ['Data', 'Lote', 'Transferidas', 'Descartadas', 'Enraizadas', '% Enraiz.', 'Status'],
+          clone.transferencias.map(t => [
+            t.data ? t.data.split('-').reverse().join('/') : '-',
+            t.lote?.codigo || '-',
+            t.transferidas.toLocaleString('pt-BR'),
+            t.descartadas.toLocaleString('pt-BR'),
+            t.enraizadas.toLocaleString('pt-BR'),
+            t.taxa_enraizamento + '%',
+            t.status_enraizamento,
+          ])
+        );
+      });
+
+      // Rodapé em todas as páginas
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFillColor(...cor.bg);
+        pdf.rect(0, 288, pw, 10, 'F');
+        pdf.setTextColor(...cor.cinzaMed);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7);
+        pdf.text('Viveiro Metalsider — Indicadores por Clone', margin, 294);
+        pdf.text(`Página ${i} de ${totalPages}`, pw - margin, 294, { align: 'right' });
+      }
+
+      pdf.save(`viveiro_indicadores_por_clone_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+    } finally { setExportando(false); }
+  };
 
   const KpiCard = ({ label, valor, thresholds }) => {
     const status = classificar(valor, thresholds);
@@ -122,7 +300,16 @@ export default function Indicadores() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Indicadores de Produção" description="Análise por transferência (Casa de Sombra → Rustificação)" />
+      <PageHeader
+        title="Indicadores de Produção"
+        description="Análise por transferência (Casa de Sombra → Rustificação)"
+        action={
+          <Button variant="outline" onClick={exportarPDF} disabled={exportando} className="gap-2">
+            {exportando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {exportando ? 'Gerando...' : 'Exportar PDF por Clone'}
+          </Button>
+        }
+      />
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-3">
