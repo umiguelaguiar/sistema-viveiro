@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { useMovimentacoes, useSetores, useClones, usePerdas, useLotes } from '@/hooks/useNurseryData';
 import PageHeader from '@/components/shared/PageHeader';
 import { Card } from '@/components/ui/card';
@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, Loader2 } from 'lucide-react';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -115,6 +116,7 @@ export default function Indicadores() {
 
   const mediaEnraiz = avg(transferFiltradas.map(t => t.taxa_enraizamento));
   const [exportando, setExportando] = useState(false);
+  const graficoRef = useRef(null);
 
   // Dados para o gráfico: evolução do enraizamento por clone ao longo do tempo
   const dadosGrafico = useMemo(() => {
@@ -162,6 +164,15 @@ export default function Indicadores() {
   const exportarPDF = async () => {
     setExportando(true);
     try {
+      // Capturar gráfico da tela
+      let graficoImg = null;
+      if (graficoRef.current) {
+        try {
+          const canvas = await html2canvas(graficoRef.current, { scale: 2, backgroundColor: '#ffffff' });
+          graficoImg = canvas.toDataURL('image/png');
+        } catch {}
+      }
+
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pw = 210;
       const margin = 15;
@@ -251,6 +262,16 @@ export default function Indicadores() {
       linha('Total Enraizadas', transferFiltradas.reduce((s, t) => s + t.enraizadas, 0).toLocaleString('pt-BR') + ' mudas');
       linha('Média Geral de Enraizamento', mediaEnraiz + '%', true);
       y += 5;
+
+      // Gráfico de evolução
+      if (graficoImg) {
+        secao('Evolução do Enraizamento por Clone');
+        const imgW = contentW;
+        const imgH = imgW * 0.45;
+        checkY(imgH + 5);
+        try { pdf.addImage(graficoImg, 'PNG', margin, y, imgW, imgH); } catch {}
+        y += imgH + 5;
+      }
 
       // Tabela consolidada por clone
       if (dadosPorClone.length > 0) {
@@ -388,6 +409,7 @@ export default function Indicadores() {
 
       {/* Gráfico de evolução por clone */}
       {dadosGrafico.length > 0 && (
+        <div ref={graficoRef}>
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-1">Evolução do Enraizamento por Clone</h3>
           <p className="text-sm text-muted-foreground mb-4">Taxa de enraizamento (%) ao longo do tempo</p>
@@ -415,6 +437,7 @@ export default function Indicadores() {
             </LineChart>
           </ResponsiveContainer>
         </Card>
+        </div>
       )}
 
       {/* Tabela */}
