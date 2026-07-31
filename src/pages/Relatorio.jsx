@@ -620,19 +620,20 @@ export default function Relatorio() {
       // --- Previsão de Produção - Próximos 6 meses (por clone) ---
       secao('Previsão de Produção - Próximos 6 Meses');
 
-      // Média mensal por clone baseada nos últimos 10 dias
-      const ultimos10 = producoes.filter(p => {
-        try { return isWithinInterval(parseISO(p.data), { start: subDays(hoje, 10), end: hoje }); } catch { return false; }
+      // Média mensal por clone baseada nos últimos 6 meses
+      const inicio6meses = subMonths(hoje, 6);
+      const ultimos6meses = producoes.filter(p => {
+        try { return isWithinInterval(parseISO(p.data), { start: inicio6meses, end: hoje }); } catch { return false; }
       });
       const porCloneAvg = {};
-      ultimos10.forEach(p => {
+      ultimos6meses.forEach(p => {
         const nome = cloneMap[p.clone_id] || p.clone_id;
         if (!porCloneAvg[nome]) porCloneAvg[nome] = 0;
         porCloneAvg[nome] += (p.quantidade || 0);
       });
-      // Previsão mensal = (total 10 dias / 10) * 22 dias úteis
+      // Previsão mensal = média mensal dos últimos 6 meses
       const previsaoPorClone = Object.entries(porCloneAvg)
-        .map(([nome, total]) => ({ nome, mensal: Math.round((total / 10) * 22) }))
+        .map(([nome, total]) => ({ nome, mensal: Math.round(total / 6) }))
         .filter(c => c.mensal > 0)
         .sort((a, b) => b.mensal - a.mensal);
 
@@ -696,7 +697,7 @@ export default function Relatorio() {
       pdf.setTextColor(...cor.cinzaEsc);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(8.5);
-      pdf.text('Previsão baseada nos últimos 10 dias de produção', margin + 3, y + 4.2);
+      pdf.text('Previsão baseada nos últimos 6 meses de produção', margin + 3, y + 4.2);
       pdf.setFont('helvetica', 'bold');
       pdf.text(totalMensalPrevisto.toLocaleString('pt-BR') + ' mudas/mês', pw - margin - 3, y + 4.2, { align: 'right' });
       y += 8;
