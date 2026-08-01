@@ -721,7 +721,6 @@ export default function Relatorio() {
         try { return isWithinInterval(parseISO(m.data), { start: inicio6meses, end: hoje }); } catch { return false; }
       });
       const mediaMensalPerdas = perdas6m.reduce((s, p) => s + (p.quantidade || 0), 0) / 6;
-      const mediaMensalExped = exped6m.reduce((s, m) => s + (m.quantidade || 0), 0) / 6;
 
       secao('Previsão de Estoque Total - Até Jan/2027');
 
@@ -735,7 +734,7 @@ export default function Relatorio() {
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(8);
       let xh = margin;
-      ['Mês', 'Produção', 'Perdas + Exped.', 'Estoque Proj.'].forEach((h, i) => {
+      ['Mês', 'Produção', 'Perdas', 'Estoque Proj.'].forEach((h, i) => {
         pdf.text(h, xh + 2, y + 5);
         xh += colW[i];
       });
@@ -753,10 +752,14 @@ export default function Relatorio() {
       y += 6;
 
       // Projeção mês a mês
+      // Agosto usa a meta atual (150k); a partir de setembro, 170k/mês
+      const META_AGO = totalMensalPrevisto;
+      const META_SET = 170000;
+      const perdasMes = Math.round(mediaMensalPerdas);
       let estoqueProj = estoqueTotal;
-      const saidasMes = Math.round(mediaMensalPerdas + mediaMensalExped);
       mesesFuturos.forEach((mLabel, idx) => {
-        estoqueProj += totalMensalPrevisto - saidasMes;
+        const producaoMes = idx === 0 ? META_AGO : META_SET;
+        estoqueProj += producaoMes - perdasMes;
         if (estoqueProj < 0) estoqueProj = 0;
         checkY(6);
         pdf.setFillColor(idx % 2 === 0 ? 250 : 245, idx % 2 === 0 ? 250 : 248, idx % 2 === 0 ? 250 : 245);
@@ -768,8 +771,8 @@ export default function Relatorio() {
         pdf.setFontSize(7.5);
         let xc = margin;
         pdf.text(mLabel, xc + 2, y + 4.2); xc += colW[0];
-        pdf.text('+' + totalMensalPrevisto.toLocaleString('pt-BR'), xc + 2, y + 4.2); xc += colW[1];
-        pdf.text('-' + saidasMes.toLocaleString('pt-BR'), xc + 2, y + 4.2); xc += colW[2];
+        pdf.text('+' + producaoMes.toLocaleString('pt-BR'), xc + 2, y + 4.2); xc += colW[1];
+        pdf.text('-' + perdasMes.toLocaleString('pt-BR'), xc + 2, y + 4.2); xc += colW[2];
         pdf.setFont('helvetica', 'bold');
         pdf.text(estoqueProj.toLocaleString('pt-BR'), xc + 2, y + 4.2);
         y += 6;
@@ -784,7 +787,7 @@ export default function Relatorio() {
       pdf.setTextColor(...cor.cinzaEsc);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(8);
-      pdf.text(`Estoque inicial: ${estoqueTotal.toLocaleString('pt-BR')} | Saídas mensais estimadas: ${saidasMes.toLocaleString('pt-BR')} (perdas + expedição média 6 meses)`, margin + 2, y + 4.2);
+      pdf.text(`Estoque inicial: ${estoqueTotal.toLocaleString('pt-BR')} | Perdas mensais estimadas: ${perdasMes.toLocaleString('pt-BR')} (média 6 meses) | Produção: ${META_AGO.toLocaleString('pt-BR')} (ago) / ${META_SET.toLocaleString('pt-BR')} (set+)`, margin + 2, y + 4.2);
       y += 8;
 
       // Rodapé
