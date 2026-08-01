@@ -620,7 +620,7 @@ export default function Relatorio() {
       // --- Previsão de Produção - Próximos 6 meses (por clone) ---
       secao('Previsão de Produção - Próximos 6 Meses');
 
-      // Média mensal por clone baseada nos últimos 6 meses
+      // Distribuição percentual por clone baseada nos últimos 6 meses
       const inicio6meses = subMonths(hoje, 6);
       const ultimos6meses = producoes.filter(p => {
         try { return isWithinInterval(parseISO(p.data), { start: inicio6meses, end: hoje }); } catch { return false; }
@@ -631,13 +631,19 @@ export default function Relatorio() {
         if (!porCloneAvg[nome]) porCloneAvg[nome] = 0;
         porCloneAvg[nome] += (p.quantidade || 0);
       });
-      // Previsão mensal = média mensal dos últimos 6 meses
+      const totalReal6meses = Object.values(porCloneAvg).reduce((s, v) => s + v, 0);
+      // Meta fixa de 150.000 mudas/mês, distribuída pela porcentagem real de cada clone
+      const META_MENSAL = 150000;
       const previsaoPorClone = Object.entries(porCloneAvg)
-        .map(([nome, total]) => ({ nome, mensal: Math.round(total / 6) }))
+        .map(([nome, total]) => ({
+          nome,
+          percentual: totalReal6meses > 0 ? (total / totalReal6meses) * 100 : 0,
+          mensal: Math.round((total / (totalReal6meses || 1)) * META_MENSAL),
+        }))
         .filter(c => c.mensal > 0)
         .sort((a, b) => b.mensal - a.mensal);
 
-      const totalMensalPrevisto = previsaoPorClone.reduce((s, c) => s + c.mensal, 0);
+      const totalMensalPrevisto = META_MENSAL;
 
       // Próximos 6 meses
       const mesesFuturos = Array.from({ length: 6 }, (_, i) => {
@@ -697,7 +703,7 @@ export default function Relatorio() {
       pdf.setTextColor(...cor.cinzaEsc);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(8.5);
-      pdf.text('Previsão baseada nos últimos 6 meses de produção', margin + 3, y + 4.2);
+      pdf.text('Previsão: 150.000 mudas/mês distribuídas pela % real dos últimos 6 meses', margin + 3, y + 4.2);
       pdf.setFont('helvetica', 'bold');
       pdf.text(totalMensalPrevisto.toLocaleString('pt-BR') + ' mudas/mês', pw - margin - 3, y + 4.2, { align: 'right' });
       y += 8;
