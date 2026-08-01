@@ -618,7 +618,7 @@ export default function Relatorio() {
       }
 
       // --- Previsão de Produção - Próximos 6 meses (por clone) ---
-      secao('Previsão de Produção - Até Jan/2027');
+      secao('Previsão de Produção - Até Fev/2027');
 
       // Distribuição percentual por clone baseada nos últimos 6 meses
       const inicio6meses = subMonths(hoje, 6);
@@ -632,21 +632,23 @@ export default function Relatorio() {
         porCloneAvg[nome] += (p.quantidade || 0);
       });
       const totalReal6meses = Object.values(porCloneAvg).reduce((s, v) => s + v, 0);
-      // Meta fixa de 150.000 mudas/mês, distribuída pela porcentagem real de cada clone
-      const META_MENSAL = 150000;
+      // Meta: 150.000 em agosto, 170.000 a partir de setembro
+      const META_AGO = 150000;
+      const META_SET = 170000;
       const previsaoPorClone = Object.entries(porCloneAvg)
         .map(([nome, total]) => ({
           nome,
           percentual: totalReal6meses > 0 ? (total / totalReal6meses) * 100 : 0,
-          mensal: Math.round((total / (totalReal6meses || 1)) * META_MENSAL),
+          mensal: Math.round((total / (totalReal6meses || 1)) * META_AGO),
+          mensalSet: Math.round((total / (totalReal6meses || 1)) * META_SET),
         }))
         .filter(c => c.mensal > 0)
         .sort((a, b) => b.mensal - a.mensal);
 
-      const totalMensalPrevisto = META_MENSAL;
+      const totalMensalPrevisto = META_AGO;
 
-      // Previsão até janeiro/2027
-      const mesFinal = new Date(2027, 0, 1); // Janeiro/2027
+      // Previsão até fevereiro/2027
+      const mesFinal = new Date(2027, 1, 1); // Fevereiro/2027
       const mesInicial = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
       const numMeses = Math.max(1, (mesFinal.getFullYear() - mesInicial.getFullYear()) * 12 + (mesFinal.getMonth() - mesInicial.getMonth()) + 1);
       const mesesFuturos = Array.from({ length: numMeses }, (_, i) => {
@@ -681,7 +683,8 @@ export default function Relatorio() {
         pdf.setFontSize(7);
         pdf.text(c.nome, margin + 2, y + 4.2);
         mesesFuturos.forEach((_, i) => {
-          pdf.text(c.mensal.toLocaleString('pt-BR'), margin + colCloneW + colMesW * i + 1, y + 4.2);
+          const val = i === 0 ? c.mensal : c.mensalSet;
+          pdf.text(val.toLocaleString('pt-BR'), margin + colCloneW + colMesW * i + 1, y + 4.2);
         });
         y += 6;
       });
@@ -694,7 +697,7 @@ export default function Relatorio() {
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(8);
       pdf.text('TOTAL MENSAL PREVISTO', margin + 2, y + 5);
-      pdf.text(totalMensalPrevisto.toLocaleString('pt-BR') + ' mudas/mês', pw - margin - 3, y + 5, { align: 'right' });
+      pdf.text(`${META_AGO.toLocaleString('pt-BR')} (ago) / ${META_SET.toLocaleString('pt-BR')} (set+)`, pw - margin - 3, y + 5, { align: 'right' });
       y += 10;
 
       // Resumo da previsão
@@ -706,9 +709,7 @@ export default function Relatorio() {
       pdf.setTextColor(...cor.cinzaEsc);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(8.5);
-      pdf.text('Previsão: 150.000 mudas/mês distribuídas pela % real dos últimos 6 meses', margin + 3, y + 4.2);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text(totalMensalPrevisto.toLocaleString('pt-BR') + ' mudas/mês', pw - margin - 3, y + 4.2, { align: 'right' });
+      pdf.text(`Previsão: ${META_AGO.toLocaleString('pt-BR')} (ago) / ${META_SET.toLocaleString('pt-BR')} (set+) — distribuídas pela % real dos últimos 6 meses`, margin + 3, y + 4.2);
       y += 8;
 
       // --- Previsão de Estoque Total até Jan/2027 ---
@@ -722,7 +723,7 @@ export default function Relatorio() {
       });
       const mediaMensalPerdas = perdas6m.reduce((s, p) => s + (p.quantidade || 0), 0) / 6;
 
-      secao('Previsão de Estoque Total - Até Jan/2027');
+      secao('Previsão de Estoque Total - Até Fev/2027');
 
       const colW = [contentW * 0.20, contentW * 0.25, contentW * 0.25, contentW * 0.30];
 
@@ -753,8 +754,6 @@ export default function Relatorio() {
 
       // Projeção mês a mês
       // Agosto usa a meta atual (150k); a partir de setembro, 170k/mês
-      const META_AGO = totalMensalPrevisto;
-      const META_SET = 170000;
       const perdasMes = Math.round(mediaMensalPerdas);
       let estoqueProj = estoqueTotal;
       mesesFuturos.forEach((mLabel, idx) => {
