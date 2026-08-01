@@ -618,7 +618,7 @@ export default function Relatorio() {
       }
 
       // --- Previsão de Produção - Próximos 6 meses (por clone) ---
-      secao('Previsão de Produção - Próximos 6 Meses');
+      secao('Previsão de Produção - Até Jan/2027');
 
       // Distribuição percentual por clone baseada nos últimos 6 meses
       const inicio6meses = subMonths(hoje, 6);
@@ -645,14 +645,17 @@ export default function Relatorio() {
 
       const totalMensalPrevisto = META_MENSAL;
 
-      // Próximos 6 meses
-      const mesesFuturos = Array.from({ length: 6 }, (_, i) => {
+      // Previsão até janeiro/2027
+      const mesFinal = new Date(2027, 0, 1); // Janeiro/2027
+      const mesInicial = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1);
+      const numMeses = Math.max(1, (mesFinal.getFullYear() - mesInicial.getFullYear()) * 12 + (mesFinal.getMonth() - mesInicial.getMonth()) + 1);
+      const mesesFuturos = Array.from({ length: numMeses }, (_, i) => {
         const d = new Date(hoje.getFullYear(), hoje.getMonth() + i + 1, 1);
         return format(d, 'MMM/yy', { locale: ptBR });
       });
 
       const colCloneW = contentW * 0.28;
-      const colMesW = (contentW - colCloneW) / 6;
+      const colMesW = (contentW - colCloneW) / numMeses;
 
       // Cabeçalho
       checkY(10);
