@@ -647,10 +647,10 @@ export default function Relatorio() {
 
       // Previsão até janeiro/2027
       const mesFinal = new Date(2027, 0, 1); // Janeiro/2027
-      const mesInicial = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1);
+      const mesInicial = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
       const numMeses = Math.max(1, (mesFinal.getFullYear() - mesInicial.getFullYear()) * 12 + (mesFinal.getMonth() - mesInicial.getMonth()) + 1);
       const mesesFuturos = Array.from({ length: numMeses }, (_, i) => {
-        const d = new Date(hoje.getFullYear(), hoje.getMonth() + i + 1, 1);
+        const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
         return format(d, 'MMM/yy', { locale: ptBR });
       });
 
