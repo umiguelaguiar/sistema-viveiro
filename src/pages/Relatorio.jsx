@@ -711,6 +711,82 @@ export default function Relatorio() {
       pdf.text(totalMensalPrevisto.toLocaleString('pt-BR') + ' mudas/mês', pw - margin - 3, y + 4.2, { align: 'right' });
       y += 8;
 
+      // --- Previsão de Estoque Total até Jan/2027 ---
+      // Média mensal de perdas e expedição nos últimos 6 meses
+      const perdas6m = perdas.filter(p => {
+        try { return isWithinInterval(parseISO(p.data), { start: inicio6meses, end: hoje }); } catch { return false; }
+      });
+      const exped6m = movimentacoes.filter(m => {
+        if (m.tipo !== 'expedicao') return false;
+        try { return isWithinInterval(parseISO(m.data), { start: inicio6meses, end: hoje }); } catch { return false; }
+      });
+      const mediaMensalPerdas = perdas6m.reduce((s, p) => s + (p.quantidade || 0), 0) / 6;
+      const mediaMensalExped = exped6m.reduce((s, m) => s + (m.quantidade || 0), 0) / 6;
+
+      secao('Previsão de Estoque Total - Até Jan/2027');
+
+      const colW = [contentW * 0.20, contentW * 0.25, contentW * 0.25, contentW * 0.30];
+
+      // Cabeçalho
+      checkY(10);
+      pdf.setFillColor(...cor.cinzaEsc);
+      pdf.rect(margin, y, contentW, 7, 'F');
+      pdf.setTextColor(...cor.branco);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8);
+      let xh = margin;
+      ['Mês', 'Produção', 'Perdas + Exped.', 'Estoque Proj.'].forEach((h, i) => {
+        pdf.text(h, xh + 2, y + 5);
+        xh += colW[i];
+      });
+      y += 7;
+
+      // Linha de estoque atual
+      checkY(6);
+      pdf.setFillColor(...cor.verde);
+      pdf.rect(margin, y, contentW, 6, 'F');
+      pdf.setTextColor(...cor.branco);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(7.5);
+      pdf.text('Estoque Atual', margin + 2, y + 4.2);
+      pdf.text(estoqueTotal.toLocaleString('pt-BR') + ' mudas', margin + colW[0] + colW[1] + colW[2] + 2, y + 4.2);
+      y += 6;
+
+      // Projeção mês a mês
+      let estoqueProj = estoqueTotal;
+      const saidasMes = Math.round(mediaMensalPerdas + mediaMensalExped);
+      mesesFuturos.forEach((mLabel, idx) => {
+        estoqueProj += totalMensalPrevisto - saidasMes;
+        if (estoqueProj < 0) estoqueProj = 0;
+        checkY(6);
+        pdf.setFillColor(idx % 2 === 0 ? 250 : 245, idx % 2 === 0 ? 250 : 248, idx % 2 === 0 ? 250 : 245);
+        pdf.rect(margin, y, contentW, 6, 'F');
+        pdf.setDrawColor(...cor.cinzaClaro);
+        pdf.rect(margin, y, contentW, 6, 'S');
+        pdf.setTextColor(...cor.cinzaEsc);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.5);
+        let xc = margin;
+        pdf.text(mLabel, xc + 2, y + 4.2); xc += colW[0];
+        pdf.text('+' + totalMensalPrevisto.toLocaleString('pt-BR'), xc + 2, y + 4.2); xc += colW[1];
+        pdf.text('-' + saidasMes.toLocaleString('pt-BR'), xc + 2, y + 4.2); xc += colW[2];
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(estoqueProj.toLocaleString('pt-BR'), xc + 2, y + 4.2);
+        y += 6;
+      });
+
+      // Rodapé da seção
+      checkY(8);
+      pdf.setFillColor(245, 248, 245);
+      pdf.rect(margin, y, contentW, 6, 'F');
+      pdf.setDrawColor(...cor.cinzaClaro);
+      pdf.rect(margin, y, contentW, 6, 'S');
+      pdf.setTextColor(...cor.cinzaEsc);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
+      pdf.text(`Estoque inicial: ${estoqueTotal.toLocaleString('pt-BR')} | Saídas mensais estimadas: ${saidasMes.toLocaleString('pt-BR')} (perdas + expedição média 6 meses)`, margin + 2, y + 4.2);
+      y += 8;
+
       // Rodapé
       pdf.setFillColor(...cor.bg);
       pdf.rect(0, 288, pw, 10, 'F');
