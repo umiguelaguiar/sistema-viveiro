@@ -647,12 +647,12 @@ export default function Relatorio() {
 
       const totalMensalPrevisto = META_AGO;
 
-      // Previsão até fevereiro/2027
+      // Previsão até fevereiro/2027 — começa a partir do próximo mês (o atual já está em andamento)
       const mesFinal = new Date(2027, 1, 1); // Fevereiro/2027
-      const mesInicial = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      const mesInicial = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1); // Próximo mês
       const numMeses = Math.max(1, (mesFinal.getFullYear() - mesInicial.getFullYear()) * 12 + (mesFinal.getMonth() - mesInicial.getMonth()) + 1);
       const mesesFuturos = Array.from({ length: numMeses }, (_, i) => {
-        const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+        const d = new Date(mesInicial.getFullYear(), mesInicial.getMonth() + i, 1);
         return format(d, 'MMM/yy', { locale: ptBR });
       });
 
@@ -683,8 +683,7 @@ export default function Relatorio() {
         pdf.setFontSize(7);
         pdf.text(c.nome, margin + 2, y + 4.2);
         mesesFuturos.forEach((_, i) => {
-          const val = i === 0 ? c.mensal : c.mensalSet;
-          pdf.text(val.toLocaleString('pt-BR'), margin + colCloneW + colMesW * i + 1, y + 4.2);
+          pdf.text(c.mensalSet.toLocaleString('pt-BR'), margin + colCloneW + colMesW * i + 1, y + 4.2);
         });
         y += 6;
       });
@@ -697,7 +696,7 @@ export default function Relatorio() {
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(8);
       pdf.text('TOTAL MENSAL PREVISTO', margin + 2, y + 5);
-      pdf.text(`${META_AGO.toLocaleString('pt-BR')} (ago) / ${META_SET.toLocaleString('pt-BR')} (set+)`, pw - margin - 3, y + 5, { align: 'right' });
+      pdf.text(`${META_SET.toLocaleString('pt-BR')} mudas/mês`, pw - margin - 3, y + 5, { align: 'right' });
       y += 10;
 
       // Resumo da previsão
@@ -709,7 +708,7 @@ export default function Relatorio() {
       pdf.setTextColor(...cor.cinzaEsc);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(8.5);
-      pdf.text(`Previsão: ${META_AGO.toLocaleString('pt-BR')} (ago) / ${META_SET.toLocaleString('pt-BR')} (set+) — distribuídas pela % real dos últimos 6 meses`, margin + 3, y + 4.2);
+      pdf.text(`Previsão: ${META_SET.toLocaleString('pt-BR')} mudas/mês — distribuídas pela % real dos últimos 6 meses`, margin + 3, y + 4.2);
       y += 8;
 
       // --- Previsão de Estoque Total até Jan/2027 ---
@@ -755,8 +754,7 @@ export default function Relatorio() {
       // Projeção mês a mês — começa a partir do próximo mês (o atual já está em andamento)
       const perdasMes = Math.round(mediaMensalPerdas);
       let estoqueProj = estoqueTotal;
-      const mesesProj = mesesFuturos.slice(1); // Pula o mês atual
-      mesesProj.forEach((mLabel, idx) => {
+      mesesFuturos.forEach((mLabel, idx) => {
         const producaoMes = META_SET; // Todos os meses projetados são Set+
         estoqueProj += producaoMes - perdasMes;
         if (estoqueProj < 0) estoqueProj = 0;
