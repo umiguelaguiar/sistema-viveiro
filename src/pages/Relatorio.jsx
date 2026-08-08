@@ -740,22 +740,55 @@ export default function Relatorio() {
       });
       y += 7;
 
-      // Linha de estoque atual
+      // Produção/perdas/expedição reais do mês corrente (até hoje)
+      const inicioMesAtual = startOfMonth(hoje);
+      const inMesAtual = (dt) => { try { return isWithinInterval(parseISO(dt), { start: inicioMesAtual, end: hoje }); } catch { return false; } };
+      const prodMesAtualReal = producoes.filter(p => inMesAtual(p.data)).reduce((s, p) => s + (p.quantidade || 0), 0);
+      const perdasMesAtualReal = perdas.filter(p => inMesAtual(p.data)).reduce((s, p) => s + (p.quantidade || 0), 0);
+      const expedMesAtualReal = movimentacoes.filter(m => m.tipo === 'expedicao' && inMesAtual(m.data)).reduce((s, m) => s + (m.quantidade || 0), 0);
+
+      // Estoque no início do mês corrente (remove o que já entrou/saiu neste mês)
+      const estoqueInicioMes = estoqueTotal - prodMesAtualReal + perdasMesAtualReal + expedMesAtualReal;
+
+      // Linha de estoque inicial (início do mês corrente)
       checkY(6);
       pdf.setFillColor(...cor.verde);
       pdf.rect(margin, y, contentW, 6, 'F');
       pdf.setTextColor(...cor.branco);
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(7.5);
-      pdf.text('Estoque Atual', margin + 2, y + 4.2);
-      pdf.text(estoqueTotal.toLocaleString('pt-BR') + ' mudas', margin + colW[0] + colW[1] + colW[2] + 2, y + 4.2);
+      pdf.text('Estoque Inicial', margin + 2, y + 4.2);
+      pdf.text(estoqueInicioMes.toLocaleString('pt-BR') + ' mudas', margin + colW[0] + colW[1] + colW[2] + 2, y + 4.2);
       y += 6;
 
-      // Projeção mês a mês — começa a partir do próximo mês (o atual já está em andamento)
+      // Projeção mês a mês — mês corrente usa produção real, meses futuros usam previsão
       const perdasMes = Math.round(mediaMensalPerdas);
-      let estoqueProj = estoqueTotal;
+      let estoqueProj = estoqueInicioMes;
+      const mesAtualLabel = format(hoje, 'MMM/yy', { locale: ptBR });
+
+      // Mês corrente (produção real lançada)
+      const saidasMesAtual = perdasMesAtualReal + expedMesAtualReal;
+      estoqueProj += prodMesAtualReal - saidasMesAtual;
+      if (estoqueProj < 0) estoqueProj = 0;
+      checkY(6);
+      pdf.setFillColor(255, 248, 240);
+      pdf.rect(margin, y, contentW, 6, 'F');
+      pdf.setDrawColor(...cor.cinzaClaro);
+      pdf.rect(margin, y, contentW, 6, 'S');
+      pdf.setTextColor(...cor.cinzaEsc);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(7.5);
+      let xcAtual = margin;
+      pdf.text(mesAtualLabel + ' (real)', xcAtual + 2, y + 4.2); xcAtual += colW[0];
+      pdf.text('+' + prodMesAtualReal.toLocaleString('pt-BR'), xcAtual + 2, y + 4.2); xcAtual += colW[1];
+      pdf.text('-' + saidasMesAtual.toLocaleString('pt-BR'), xcAtual + 2, y + 4.2); xcAtual += colW[2];
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(estoqueProj.toLocaleString('pt-BR'), xcAtual + 2, y + 4.2);
+      y += 6;
+
+      // Meses futuros (previsão)
       mesesFuturos.forEach((mLabel, idx) => {
-        const producaoMes = META_SET; // Todos os meses projetados são Set+
+        const producaoMes = META_SET;
         estoqueProj += producaoMes - perdasMes;
         if (estoqueProj < 0) estoqueProj = 0;
         checkY(6);
@@ -784,7 +817,7 @@ export default function Relatorio() {
       pdf.setTextColor(...cor.cinzaEsc);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(8);
-      pdf.text(`Estoque inicial: ${estoqueTotal.toLocaleString('pt-BR')} | Perdas mensais estimadas: ${perdasMes.toLocaleString('pt-BR')} (média 6 meses) | Produção: ${META_SET.toLocaleString('pt-BR')} mudas/mês`, margin + 2, y + 4.2);
+      pdf.text(`Estoque inicial: ${estoqueInicioMes.toLocaleString('pt-BR')} | Mês corrente: produção real | Meses futuros: ${META_SET.toLocaleString('pt-BR')} mudas/mês - ${perdasMes.toLocaleString('pt-BR')} perdas estimadas`, margin + 2, y + 4.2);
       y += 8;
 
       // Rodapé
