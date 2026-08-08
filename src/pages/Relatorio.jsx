@@ -752,12 +752,12 @@ export default function Relatorio() {
       pdf.text(estoqueTotal.toLocaleString('pt-BR') + ' mudas', margin + colW[0] + colW[1] + colW[2] + 2, y + 4.2);
       y += 6;
 
-      // Projeção mês a mês
-      // Agosto usa a meta atual (150k); a partir de setembro, 170k/mês
+      // Projeção mês a mês — começa a partir do próximo mês (o atual já está em andamento)
       const perdasMes = Math.round(mediaMensalPerdas);
       let estoqueProj = estoqueTotal;
-      mesesFuturos.forEach((mLabel, idx) => {
-        const producaoMes = idx === 0 ? META_AGO : META_SET;
+      const mesesProj = mesesFuturos.slice(1); // Pula o mês atual
+      mesesProj.forEach((mLabel, idx) => {
+        const producaoMes = META_SET; // Todos os meses projetados são Set+
         estoqueProj += producaoMes - perdasMes;
         if (estoqueProj < 0) estoqueProj = 0;
         checkY(6);
@@ -786,7 +786,7 @@ export default function Relatorio() {
       pdf.setTextColor(...cor.cinzaEsc);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(8);
-      pdf.text(`Estoque inicial: ${estoqueTotal.toLocaleString('pt-BR')} | Perdas mensais estimadas: ${perdasMes.toLocaleString('pt-BR')} (média 6 meses) | Produção: ${META_AGO.toLocaleString('pt-BR')} (ago) / ${META_SET.toLocaleString('pt-BR')} (set+)`, margin + 2, y + 4.2);
+      pdf.text(`Estoque inicial: ${estoqueTotal.toLocaleString('pt-BR')} | Perdas mensais estimadas: ${perdasMes.toLocaleString('pt-BR')} (média 6 meses) | Produção: ${META_SET.toLocaleString('pt-BR')} mudas/mês`, margin + 2, y + 4.2);
       y += 8;
 
       // Rodapé
