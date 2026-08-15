@@ -61,6 +61,7 @@ function UserRow({ u, currentUserId }) {
           <SelectContent>
             <SelectItem value={ROLES.VISITANTE}>Visitante</SelectItem>
             <SelectItem value={ROLES.USUARIO}>Usuário</SelectItem>
+            <SelectItem value={ROLES.SECRETARIA}>Secretária</SelectItem>
             <SelectItem value={ROLES.SUPERVISOR}>Supervisor</SelectItem>
             <SelectItem value={ROLES.GERENTE}>Gerente</SelectItem>
             <SelectItem value={ROLES.ADMIN}>Administrador</SelectItem>
@@ -122,10 +123,11 @@ export default function Admin() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-6">
         {[
           { role: ROLES.VISITANTE, label: 'Visitantes' },
           { role: ROLES.USUARIO, label: 'Usuários' },
+          { role: ROLES.SECRETARIA, label: 'Secretárias' },
           { role: ROLES.SUPERVISOR, label: 'Supervisores' },
           { role: ROLES.GERENTE, label: 'Gerentes' },
           { role: ROLES.ADMIN, label: 'Administradores' },
@@ -146,6 +148,7 @@ export default function Admin() {
           {[
             { role: ROLES.VISITANTE, desc: 'Sem acesso. Aguardando aprovação do administrador' },
             { role: ROLES.USUARIO, desc: 'Dashboard, Estoque, Relatório, Porcentagem, Previsão, Insumos' },
+            { role: ROLES.SECRETARIA, desc: 'Dashboard, Estoque, Indicadores, Lotes, Produção, Transferência, Expedição, Perdas, Insumos, Mov. Insumos' },
             { role: ROLES.SUPERVISOR, desc: 'Todas as abas operacionais (exceto área administrativa)' },
             { role: ROLES.GERENTE, desc: 'Todas as abas operacionais (exceto área administrativa)' },
             { role: ROLES.ADMIN, desc: 'Acesso total, incluindo esta área administrativa' },
