@@ -65,6 +65,11 @@
           "user_condition": {
             "role": "usuario"
           }
+        },
+        {
+          "user_condition": {
+            "role": "secretaria"
+          }
         }
       ]
     },
@@ -88,6 +93,11 @@
         {
           "user_condition": {
             "role": "usuario"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "secretaria"
           }
         }
       ]
