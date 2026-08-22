@@ -512,6 +512,116 @@ export default function Relatorio() {
       pdf.text(totalProdSemana.toLocaleString('pt-BR') + ' mudas', pw - margin - 3, y + 4.2, { align: 'right' });
       y += 8;
 
+      // --- Gráfico de evolução da produção (últimas 8 semanas) ---
+      {
+        const numSemanas = 8;
+        const semanas = [];
+        for (let i = numSemanas - 1; i >= 0; i--) {
+          const fim = new Date(hoje);
+          fim.setDate(hoje.getDate() - i * 7);
+          const inicio = new Date(fim);
+          inicio.setDate(fim.getDate() - 6);
+          const total = producoes.filter(p => {
+            try {
+              const d = parseISO(p.data);
+              return isWithinInterval(d, { start: inicio, end: fim });
+            } catch { return false; }
+          }).reduce((s, p) => s + (p.quantidade || 0), 0);
+          semanas.push({ label: format(inicio, 'dd/MM', { locale: ptBR }), total });
+        }
+
+        // Seção
+        pdf.setFillColor(...cor.verde);
+        pdf.rect(margin, y, contentW, 7, 'F');
+        pdf.setTextColor(...cor.branco);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(9);
+        pdf.text('EVOLUÇÃO DA PRODUÇÃO (ÚLTIMAS 8 SEMANAS)', margin + 3, y + 5);
+        y += 12;
+
+        // Área do gráfico
+        const chartW = contentW;
+        const chartH = 48;
+        const chartX = margin;
+        const chartY = y;
+        const padLeft = 16;
+        const padBottom = 10;
+        const padTop = 6;
+        const padRight = 6;
+        const plotW = chartW - padLeft - padRight;
+        const plotH = chartH - padBottom - padTop;
+
+        const maxVal = Math.max(...semanas.map(s => s.total), 1);
+        const niceMax = Math.max(1000, Math.ceil(maxVal / 1000) * 1000);
+
+        // Fundo e borda
+        pdf.setFillColor(250, 252, 250);
+        pdf.rect(chartX, chartY, chartW, chartH, 'F');
+        pdf.setDrawColor(...cor.cinzaClaro);
+        pdf.setLineWidth(0.2);
+        pdf.rect(chartX, chartY, chartW, chartH, 'S');
+
+        // Grade horizontal e rótulos do eixo Y
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(6.5);
+        pdf.setTextColor(...cor.cinzaMed);
+        const gridLines = 4;
+        for (let i = 0; i <= gridLines; i++) {
+          const val = (niceMax / gridLines) * i;
+          const yPos = chartY + padTop + plotH - (plotH / gridLines) * i;
+          pdf.setDrawColor(220, 225, 220);
+          pdf.setLineDashPattern([1, 1], 0);
+          pdf.line(chartX + padLeft, yPos, chartX + padLeft + plotW, yPos);
+          pdf.setLineDashPattern([], 0);
+          const lbl = val >= 1000 ? (val / 1000).toFixed(0) + 'k' : String(Math.round(val));
+          pdf.text(lbl, chartX + padLeft - 2, yPos + 2, { align: 'right' });
+        }
+
+        // Eixo X
+        pdf.setDrawColor(...cor.cinzaMed);
+        pdf.setLineWidth(0.3);
+        pdf.line(chartX + padLeft, chartY + padTop + plotH, chartX + padLeft + plotW, chartY + padTop + plotH);
+
+        // Pontos
+        const stepX = semanas.length > 1 ? plotW / (semanas.length - 1) : 0;
+        const points = semanas.map((s, i) => ({
+          x: chartX + padLeft + stepX * i,
+          y: chartY + padTop + plotH - (s.total / niceMax) * plotH,
+          total: s.total,
+          label: s.label
+        }));
+
+        // Linha
+        pdf.setDrawColor(...cor.verde);
+        pdf.setLineWidth(0.6);
+        for (let i = 1; i < points.length; i++) {
+          pdf.line(points[i - 1].x, points[i - 1].y, points[i].x, points[i].y);
+        }
+
+        // Pontos (círculos)
+        pdf.setFillColor(...cor.verde);
+        points.forEach(p => { pdf.circle(p.x, p.y, 1.1, 'F'); });
+
+        // Rótulos do eixo X
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(6);
+        pdf.setTextColor(...cor.cinzaMed);
+        points.forEach(p => {
+          pdf.text(p.label, p.x, chartY + padTop + plotH + 4.5, { align: 'center' });
+        });
+
+        // Valores acima dos pontos
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(6);
+        pdf.setTextColor(...cor.cinzaEsc);
+        points.forEach(p => {
+          const v = p.total >= 1000 ? (p.total / 1000).toFixed(1) + 'k' : String(p.total);
+          pdf.text(v, p.x, p.y - 2.2, { align: 'center' });
+        });
+
+        y += chartH + 6;
+      }
+
       // Tabela de produções agrupadas por clone
       if (prodSemana.length > 0) {
         pdf.setFillColor(...cor.verde);
