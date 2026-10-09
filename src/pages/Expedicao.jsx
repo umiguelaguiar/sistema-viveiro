@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -25,36 +26,71 @@ export default function Expedicao() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const todayLocal = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
-  const [form, setForm] = useState({ lote_id: '', clone_id: '', quantidade: '', data: todayLocal() });
+  const [form, setForm] = useState({ clone_id: '', data: todayLocal() });
+  const [lotesSelecionados, setLotesSelecionados] = useState({});
 
   const stock = useMemo(() => calculateStock(producoes, movimentacoes, perdas), [producoes, movimentacoes, perdas]);
 
   const expedicoes = movimentacoes.filter(m => m.tipo === 'expedicao');
 
+  const stockPorLote = useMemo(() => {
+    if (!form.clone_id) return {};
+    const result = {};
+    Object.values(stock).forEach(cloneMap => {
+      const loteMap = cloneMap?.[form.clone_id];
+      if (loteMap) {
+        Object.entries(loteMap).forEach(([loteId, qty]) => {
+          if (qty > 0) result[loteId] = (result[loteId] || 0) + qty;
+        });
+      }
+    });
+    return result;
+  }, [stock, form.clone_id]);
 
-  const setorExpedicao = form.clone_id && form.lote_id && form.quantidade
-    ? getExpedicaoSetor(stock, setores, form.clone_id, form.lote_id, Number(form.quantidade))
-    : null;
+  const lotesComEstoque = useMemo(() => lotes.filter(l => (stockPorLote[l.id] || 0) > 0), [lotes, stockPorLote]);
+
+  const setoresPorLote = useMemo(() => {
+    const result = {};
+    Object.entries(lotesSelecionados).forEach(([loteId, qty]) => {
+      const q = Number(qty);
+      if (q > 0) result[loteId] = getExpedicaoSetor(stock, setores, form.clone_id, loteId, q);
+    });
+    return result;
+  }, [stock, setores, form.clone_id, lotesSelecionados]);
 
   const handleSave = async () => {
-    const qty = Number(form.quantidade);
-    if (!setorExpedicao) {
-      toast.error('Estoque insuficiente em todos os setores para esta quantidade.');
+    const lotesComQtd = Object.entries(lotesSelecionados).filter(([, q]) => Number(q) > 0);
+    if (lotesComQtd.length === 0) {
+      toast.error('Selecione ao menos um lote com quantidade.');
       return;
     }
-    await base44.entities.Movimentacao.create({
-      ...form,
-      tipo: 'expedicao',
-      quantidade: qty,
-      setor_origem_id: setorExpedicao.id,
-      setor_destino_id: ''
-    });
+    for (const [loteId, qtyStr] of lotesComQtd) {
+      const setor = getExpedicaoSetor(stock, setores, form.clone_id, loteId, Number(qtyStr));
+      if (!setor) {
+        const lote = lotes.find(l => l.id === loteId);
+        toast.error(`Estoque insuficiente para o lote ${lote?.codigo || loteId}.`);
+        return;
+      }
+    }
+    for (const [loteId, qtyStr] of lotesComQtd) {
+      const setor = getExpedicaoSetor(stock, setores, form.clone_id, loteId, Number(qtyStr));
+      await base44.entities.Movimentacao.create({
+        tipo: 'expedicao',
+        clone_id: form.clone_id,
+        lote_id: loteId,
+        quantidade: Number(qtyStr),
+        setor_origem_id: setor.id,
+        setor_destino_id: '',
+        data: form.data,
+      });
+    }
     queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
     queryClient.invalidateQueries({ queryKey: ['producoes'] });
     queryClient.invalidateQueries({ queryKey: ['perdas'] });
-    setForm({ lote_id: '', clone_id: '', quantidade: '', data: todayLocal() });
+    setForm({ clone_id: '', data: todayLocal() });
+    setLotesSelecionados({});
     setOpen(false);
-    toast.success(`Expedição registrada a partir de ${setorExpedicao.nome}`);
+    toast.success(`${lotesComQtd.length} expedição(ões) registrada(s).`);
   };
 
   const handleDelete = async (id) => {
@@ -93,40 +129,59 @@ export default function Expedicao() {
       <DataTable columns={columns} data={expedicoes} isLoading={isLoading} onDelete={handleDelete} />
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Nova Expedição</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Clone</Label>
-              <Select value={form.clone_id} onValueChange={v => setForm({ ...form, clone_id: v })}>
+              <Select value={form.clone_id} onValueChange={v => { setForm({ ...form, clone_id: v }); setLotesSelecionados({}); }}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   {clones.map(c => <SelectItem key={c.id} value={c.id}>{c.codigo_clone}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>Lote</Label>
-              <Select value={form.lote_id} onValueChange={v => setForm({ ...form, lote_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {lotes.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Quantidade</Label>
-              <Input type="number" value={form.quantidade} onChange={e => setForm({ ...form, quantidade: e.target.value })} placeholder="Ex: 500" />
-            </div>
-            {setorExpedicao && (
-              <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-                <p className="text-sm text-muted-foreground">Setor de saída automático:</p>
-                <Badge className="mt-1 bg-primary text-primary-foreground">{setorExpedicao.nome}</Badge>
-              </div>
-            )}
-            {form.quantidade && form.clone_id && form.lote_id && !setorExpedicao && (
-              <div className="p-3 bg-destructive/5 rounded-lg border border-destructive/20">
-                <p className="text-sm text-destructive">Estoque insuficiente em todos os setores.</p>
+            {form.clone_id && (
+              <div>
+                <Label>Lotes disponíveis (selecione um ou mais)</Label>
+                {lotesComEstoque.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-2">Nenhum lote com estoque para este clone.</p>
+                ) : (
+                  <div className="space-y-2 max-h-56 overflow-y-auto border rounded-lg p-2">
+                    {lotesComEstoque.map(l => {
+                      const checked = lotesSelecionados[l.id] !== undefined;
+                      const qty = lotesSelecionados[l.id] || '';
+                      const setor = qty ? setoresPorLote[l.id] : null;
+                      return (
+                        <div key={l.id} className="rounded-md border p-2">
+                          <div className="flex items-center gap-2">
+                            <Checkbox checked={checked} onCheckedChange={(c) => {
+                              if (c) setLotesSelecionados({ ...lotesSelecionados, [l.id]: '' });
+                              else {
+                                const copy = { ...lotesSelecionados };
+                                delete copy[l.id];
+                                setLotesSelecionados(copy);
+                              }
+                            }} />
+                            <span className="text-sm font-medium flex-1">{l.codigo}</span>
+                            <Badge variant="outline" className="text-xs">Estoque: {(stockPorLote[l.id] || 0).toLocaleString('pt-BR')}</Badge>
+                          </div>
+                          {checked && (
+                            <div className="mt-2 pl-6 space-y-1">
+                              <Input type="number" value={qty} onChange={e => setLotesSelecionados({ ...lotesSelecionados, [l.id]: e.target.value })} placeholder="Quantidade" />
+                              {setor && (
+                                <p className="text-xs text-muted-foreground">Saída: <span className="font-medium text-primary">{setor.nome}</span></p>
+                              )}
+                              {qty && !setor && (
+                                <p className="text-xs text-destructive">Estoque insuficiente.</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
             <div>
@@ -136,7 +191,7 @@ export default function Expedicao() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSave} disabled={!form.lote_id || !form.clone_id || !form.quantidade || !setorExpedicao}>Salvar</Button>
+            <Button onClick={handleSave} disabled={!form.clone_id || Object.values(lotesSelecionados).every(q => !Number(q))}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
