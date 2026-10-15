@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus } from 'lucide-react';
@@ -28,6 +29,7 @@ export default function Expedicao() {
   const todayLocal = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
   const [form, setForm] = useState({ clone_id: '', data: todayLocal() });
   const [lotesSelecionados, setLotesSelecionados] = useState({});
+  const [deleteId, setDeleteId] = useState(null);
 
   const stock = useMemo(() => calculateStock(producoes, movimentacoes, perdas), [producoes, movimentacoes, perdas]);
 
@@ -94,10 +96,17 @@ export default function Expedicao() {
   };
 
   const handleDelete = async (id) => {
-    await base44.entities.Movimentacao.delete(id);
-    queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
-    queryClient.invalidateQueries({ queryKey: ['producoes'] });
-    queryClient.invalidateQueries({ queryKey: ['perdas'] });
+    try {
+      await base44.entities.Movimentacao.delete(id);
+      queryClient.invalidateQueries({ queryKey: ['movimentacoes'] });
+      queryClient.invalidateQueries({ queryKey: ['producoes'] });
+      queryClient.invalidateQueries({ queryKey: ['perdas'] });
+      toast.success('Expedição excluída com sucesso.');
+    } catch (err) {
+      toast.error('Não foi possível excluir a expedição: ' + (err?.message || 'erro desconhecido'));
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   const cloneMap = {};
@@ -126,7 +135,20 @@ export default function Expedicao() {
           </Button>
         }
       />
-      <DataTable columns={columns} data={expedicoes} isLoading={isLoading} onDelete={handleDelete} />
+      <DataTable columns={columns} data={expedicoes} isLoading={isLoading} onDelete={(id) => setDeleteId(id)} />
+
+      <AlertDialog open={!!deleteId} onOpenChange={(o) => { if (!o) setDeleteId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir expedição?</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação não pode ser desfeita. A expedição será removida permanentemente.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleDelete(deleteId)}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
