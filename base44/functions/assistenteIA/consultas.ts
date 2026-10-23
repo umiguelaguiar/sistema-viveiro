@@ -870,9 +870,10 @@ export async function consultaCatalogo(base44, refs) {
     tipo: 'catalogo',
     titulo: 'Dados disponíveis no sistema',
     filtros: [{ rotulo: 'Cobertura', valor: datas.length ? `${rotuloData(datas[0])} a ${rotuloData(datas[datas.length - 1])}` : 'sem lançamentos' }],
-    resumo: contagens.filter(c => c.total !== null).map(c => ({ rotulo: c.rotulo, valor: c.total })),
+    resumo: contagens.filter(c => c.total !== null).map(c => ({ rotulo: c.rotulo, valor: `${c.total} registros` })),
     apresentacao: tabela('Registros por entidade', ['Entidade', 'Registros'], contagens.map(c => [c.rotulo, c.total === null ? 'sem acesso' : c.total.toLocaleString('pt-BR')])),
     dados_para_ia: {
+      observacao: 'Os totais abaixo são quantidades de REGISTROS (lançamentos) em cada entidade, e não quantidades de mudas. Não trate esses números como volume de produção.',
       entidades: contagens,
       periodo_coberto: datas.length ? { de: datas[0], ate: datas[datas.length - 1] } : null,
       setores: refs.setores.map(s => s.nome),
