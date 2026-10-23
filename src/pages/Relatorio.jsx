@@ -14,6 +14,7 @@ import SecaoAnaliseClone from '@/components/relatorio/SecaoAnaliseClone';
 import SecaoPrevisoes from '@/components/relatorio/SecaoPrevisoes';
 import AlertasGerenciais from '@/components/relatorio/AlertasGerenciais';
 import TabelaCompleta from '@/components/relatorio/TabelaCompleta';
+import SecaoCasaVegetacao from '@/components/relatorio/SecaoCasaVegetacao';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2, Calendar } from 'lucide-react';
 import html2canvas from 'html2canvas';
@@ -774,6 +775,7 @@ export default function Relatorio() {
         <SecaoProducao prodMes={prodMes} cloneMap={cloneMap} evolucao={evolucao} />
         <SecaoPerdas perdasMes={perdasMes} cloneMap={cloneMap} setorMap={setorMap} totalProd={totalProd} />
         <SecaoEstoque estoquePorSetor={estoquePorSetor} estoquePorClone={estoquePorClone} estoqueTotal={estoqueTotal} />
+        <SecaoCasaVegetacao producoes={producoes} movimentacoes={movimentacoes} perdas={perdas} setores={setores} clones={clones} lotes={lotes} />
         <SecaoFluxo transfMes={transfMes} expMes={expMes} setorMap={setorMap} cloneMap={cloneMap} />
         <SecaoExpedicao expMes={expMes} cloneMap={cloneMap} evolucao={evolucao} />
         <SecaoEficiencia eficiencia={eficiencia} totalProd={totalProd} totalPerdas={totalPerdas} prodMesAnt={prodMesAnt} />
