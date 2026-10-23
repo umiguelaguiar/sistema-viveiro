@@ -4,7 +4,7 @@ import {
   LayoutDashboard, TreePine, GitBranch, Layers, Factory,
   ArrowRightLeft, Truck, Skull, Package, PackageCheck,
   ChevronLeft, ChevronRight, FileBarChart2, Percent, Boxes,
-  TrendingUp, Download, ShieldAlert, UserCircle, Users
+  TrendingUp, Download, ShieldAlert, UserCircle, Users, Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
@@ -12,6 +12,7 @@ import { canAccess, ROLES, getRoleLabel, getRoleBadgeColor } from '@/lib/roles';
 
 const allNavItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+  { label: 'Assistente IA', icon: Sparkles, path: '/assistente' },
   { label: 'Estoque', icon: Boxes, path: '/estoque' },
   { label: 'Indicadores', icon: Percent, path: '/indicadores' },
   { label: 'Relatório', icon: FileBarChart2, path: '/relatorio' },

@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom';
 import {
   TreePine, GitBranch, Layers, ArrowRightLeft, Truck,
   Skull, Package, PackageCheck, Percent, TrendingUp, Download,
-  ShieldAlert, UserCircle, X
+  ShieldAlert, UserCircle, X, Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
 import { canAccess, ROLES, getRoleLabel, getRoleBadgeColor } from '@/lib/roles';
 
 const moreItems = [
+  { label: 'Assistente IA', icon: Sparkles, path: '/assistente' },
   { label: 'Previsão', icon: TrendingUp, path: '/previsao' },
   { label: 'Porcentagem', icon: Percent, path: '/porcentagem' },
   { label: 'Transferência', icon: ArrowRightLeft, path: '/transferencia' },

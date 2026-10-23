@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
 import RouteGuard from '@/components/layout/RouteGuard';
 import Dashboard from '@/pages/Dashboard';
+import AssistenteIA from '@/pages/AssistenteIA';
 import Perfil from '@/pages/Perfil';
 import Admin from '@/pages/Admin';
 import Indicadores from '@/pages/Indicadores';
@@ -89,6 +90,7 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<RouteGuard><Dashboard /></RouteGuard>} />
+        <Route path="/assistente" element={<RouteGuard><AssistenteIA /></RouteGuard>} />
         <Route path="/perfil" element={<RouteGuard><Perfil /></RouteGuard>} />
         <Route path="/admin" element={<RouteGuard><Admin /></RouteGuard>} />
         <Route path="/indicadores" element={<RouteGuard><Indicadores /></RouteGuard>} />

@@ -10,7 +10,7 @@ export const ROLES = {
 };
 
 const SUPERVISOR_ROUTES = [
-  '/', '/estoque', '/relatorio', '/indicadores', '/previsao', '/insumos',
+  '/', '/assistente', '/estoque', '/relatorio', '/indicadores', '/previsao', '/insumos',
   '/producao', '/transferencia', '/expedicao', '/perdas', '/clones',
   '/lotes', '/especies', '/movimentacao-insumos', '/backup', '/colaboradores',
 ];
